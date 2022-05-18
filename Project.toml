@@ -20,3 +20,6 @@ URIParser = "30578b45-9adc-5946-b283-645ec420af67"
 VegaDatasets = "0ae4a718-28b7-58ec-9efb-cded64d6d5b4"
 VegaLite = "112f6efa-9a02-5b7d-90c0-432ed331239a"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
+
+[compat]
+DataFrames = "1"
