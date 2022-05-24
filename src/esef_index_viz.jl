@@ -13,10 +13,6 @@ using URIParser
 using VegaDatasets
 using VegaLite
 
-# Import helper functions
-include("esef_xbrl_filings.jl")
-include("wikidata_public_companies.jl")
-
 trr_266_colors = ["#1b8a8f", "#ffb43b", "#6ecae2", "#944664"] # petrol, yellow, blue, red
 
 # TODO: figure out why entries are not unique...

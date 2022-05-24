@@ -3,9 +3,14 @@ using DataFrames
 using DataFrameMacros
 using HTTP
 
-
 function query_twitter_user_profiles_api_call(twitter_handles)
-    headers = ["Authorization" => "Bearer $(ENV["TWITTER_BEARER_TOKEN"])"]
+    if "TWITTER_BEARER_TOKEN" in keys(ENV)
+        twitter_token = ENV["TWITTER_BEARER_TOKEN"]
+    else
+        twitter_token = ""
+    end
+
+    headers = ["Authorization" => "Bearer $(twitter_token)"]
     twitter_handles_csv_chunk = @chain twitter_handles join(",")
     r = HTTP.get("https://api.twitter.com/2/users/by?usernames=$(twitter_handles_csv_chunk)&user.fields=public_metrics", headers)
     r

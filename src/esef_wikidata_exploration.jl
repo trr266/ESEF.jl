@@ -13,11 +13,6 @@ using URIParser
 using VegaDatasets
 using VegaLite
 
-# Import helper functions
-include("wikidata_public_companies.jl")
-include("esef_xbrl_filings.jl")
-include("twitter_user_query.jl")
-
 df_wikidata_lei = get_lei_companies_wikidata()
 df_wikidata_lei = enrich_wikidata_with_twitter_data(df_wikidata_lei)
 
