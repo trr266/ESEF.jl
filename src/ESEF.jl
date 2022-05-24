@@ -1,7 +1,5 @@
 module ESEF
 
-__precompile__(false)
-
 import Base: @invokelatest
 
 include("iso_country_codes.jl")
