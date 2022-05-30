@@ -5,9 +5,6 @@ using DataFrameMacros
 using Chain
 using Mustache
 
-include("iso_country_codes.jl")
-include("twitter_user_query.jl")
-
 function enrich_wikidata_with_twitter_data(df_wikidata)
     tw_lookup = DataFrame(:qid => [], :twitter_user => [])
 
