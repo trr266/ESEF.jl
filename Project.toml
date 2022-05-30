@@ -24,5 +24,6 @@ VegaLite = "112f6efa-9a02-5b7d-90c0-432ed331239a"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
 [compat]
+OrderedCollections = "1"
 JLD2 = "0.4"
 YAML = "0.4"
