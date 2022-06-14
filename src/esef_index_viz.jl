@@ -154,7 +154,7 @@ function generate_esef_homepage_viz(; map_output="web")
     viz["esef_country_availability_bar"] = fg2_bar
 
     d_path = joinpath(@__DIR__, "..", "data", "esef_mandate_overview.csv")
-    esef_year_df = @chain d_path HTTP.get(_).body CSV.read(DataFrame; normalizenames=true)
+    esef_year_df = @chain d_path CSV.read(DataFrame; normalizenames=true)
 
     fg3a = @vlplot(width = 500, height = 300, title = {text = "ESEF Mandate by Country", subtitle = "(Based on Issuer's Fiscal Year Start Date)"})
 
