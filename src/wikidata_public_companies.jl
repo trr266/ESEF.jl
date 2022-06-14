@@ -91,7 +91,8 @@ end
 
 
 function get_non_lei_isin_companies_wikidata()
-    df = query_wikidata("src/queries/wikidata_non_lei_isin_firms.sparql")
+    q_path = joinpath(@__DIR__, "..", "queries", "wikidata_non_lei_isin_firms.sparql")
+    df = @chain q_path query_wikidata()
     df = @chain df @transform(:lei_id = nothing)
     df = basic_wikidata_preprocessing(df) 
 
@@ -99,7 +100,8 @@ function get_non_lei_isin_companies_wikidata()
 end
 
 function get_lei_companies_wikidata()
-    df = query_wikidata("src/queries/wikidata_lei_entities.sparql")
+    q_path = joinpath(@__DIR__, "..", "queries", "wikidata_lei_entities.sparql")
+    df = @chain q_path query_wikidata()
     df = basic_wikidata_preprocessing(df)
     
     return df
@@ -119,7 +121,9 @@ end
 
 function lookup_company_by_name(company_name)
     try
-        df = query_wikidata("src/queries/wikidata_company_search.sparql", params=Dict("company_name" => company_name))
+        q_path = joinpath(@__DIR__, "..", "queries", "wikidata_company_search.sparql")
+        df = @chain q_path query_wikidata(params=Dict("company_name" => company_name))
+
         if nrow(df) == 0
             return DataFrame()
         end
