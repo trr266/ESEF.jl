@@ -12,6 +12,7 @@ using Statistics
 using URIParser
 using VegaDatasets
 using VegaLite
+using Setfield
 
 trr_266_colors = ["#1b8a8f", "#ffb43b", "#6ecae2", "#944664"] # petrol, yellow, blue, red
 
@@ -132,10 +133,10 @@ function generate_esef_homepage_viz(; map_output="web")
         # Make tweaks for poster
         if map_output == "poster"
             # Make tweaks for poster
-            fg2.params["background"] = nothing # transparent background
-            fg2.params["config"] = ("view" => ("stroke" => "transparent")) # remove grey border
-            fg2.params["layer"][2]["encoding"]["fill"]["legend"] = nothing # drop legend
-            fg2.params["title"] = nothing
+            fg2 = @set fg2.background = nothing # transparent background
+            fg2 = @set fg2.config = ("view" => ("stroke" => "transparent")) # remove grey border
+            fg2 = @set fg2.layer[2]["encoding"]["fill"]["legend"] = nothing # drop legend
+            fg2 = @set fg2.title = nothing
 
             viz["esef_country_availability_map_poster"] = fg2
         end
