@@ -3,6 +3,7 @@ using Chain
 using DataFrames
 using DataFrameMacros
 using CSV
+using JSON
 
 # TODO: Extract XBRL facts from items where "xbrl-json" key is populated.
 # 2594003JTXPYO8NOG018/2020-12-31/ESEF/PL/0
@@ -21,27 +22,29 @@ function get_esef_xbrl_filings()
     end
 
     df = DataFrame()
-    row_names = (:key, :entity_name, :country_alpha_2, :date, :error_count, :error_codes)
+    row_names = (:key, :entity_name, :country_alpha_2, :date, :filing_key, :error_count, :error_codes, :xbrl_json_path)
 
     df_error = DataFrame()
 
     # Parse XBRL ESEF Index Object
     for (d_key, d_value) in raw_data
         entity_name = d_value["entity"]["name"]
-        report_details = first(values(d_value["filings"]))
 
-        error_payload = report_details["errors"]
-        error_count = length(error_payload)
-        error_codes = [d["code"] for d in error_payload]
+        for (filing_key, filing_value) in d_value["filings"]
+            error_payload = filing_value["errors"]
+            error_count = length(error_payload)
+            error_codes = [d["code"] for d in error_payload]
 
-        country = report_details["country"]
-        date = report_details["date"]
+            country = filing_value["country"]
+            date = filing_value["date"]
+            xbrl_json_path = filing_value["xbrl-json"]
 
-        new_row = NamedTuple{row_names}([d_key, entity_name, country, date, error_count, error_codes])
-        push!(df, new_row)
+            new_row = NamedTuple{row_names}([d_key, entity_name, country, date, filing_key, error_count, error_codes, xbrl_json_path])
+            push!(df, new_row)
 
-        for error_code in error_codes
-            push!(df_error, NamedTuple{(:key, :error_code)}([d_key, error_code]))
+            for error_code in error_codes
+                push!(df_error, NamedTuple{(:key, :error_code)}([d_key, error_code]))
+            end
         end
     end
 
