@@ -4,6 +4,7 @@ using DataFrameMacros
 using HTTP
 using JSON
 using DataFrames
+using DelimitedFiles
 
 df, df_error = ESEF.get_esef_xbrl_filings()
 
@@ -22,7 +23,11 @@ function pluck_xbrl_json(url)
 
     for (k, fact) in raw_data["facts"]
         flat_fact = rec_flatten_dict(fact)
-        flat_fact["dimensions.entity"] = replace(flat_fact["dimensions.entity"], "scheme:" => "")
+
+        if haskey(flat_fact, "dimensions.entity")
+            flat_fact["dimensions.entity"] = replace(flat_fact["dimensions.entity"], "scheme:" => "")
+        end
+
         for (k_subfact, v_subfact) in flat_fact
             push!(finished_facts, NamedTuple{(:subject, :predicate, :object)}([k, k_subfact, string(v_subfact)]))
         end
@@ -31,8 +36,9 @@ function pluck_xbrl_json(url)
     return finished_facts
 end
 
-df1 = @chain df begin
-    @transform(:xbrl_json_url = "https://filings.xbrl.org/" * :filing_key * "/" * :xbrl_json_path)
+df = @chain df begin
+    @subset(:xbrl_json_path != nothing)
+    @transform(:xbrl_json_url = "https://filings.xbrl.org/" * :filing_key * "/" * HTTP.escapeuri(:xbrl_json_path))
     @select(:xbrl_json_url)
 end
 
@@ -54,21 +60,20 @@ function rec_flatten_dict(d, prefix_delim = ".")
     return new_d
 end
 
-strip
+df_facts = DataFrame()
 
-@chain 
-
-df_ = pluck_xbrl_json(df1[1, 1])
-df_rdf = @chain df_ begin
-    @transform(:rdf_line = "<http://example.org/" * HTTP.escapeuri(:subject) * "> <http://example.org/" * HTTP.escapeuri(:predicate) * "> <http://example.org/" * HTTP.escapeuri(:object) * "> .")
-    @select(:rdf_line)
+for r in eachrow(df)
+    df_ = pluck_xbrl_json(r[:xbrl_json_url])
+    df_rdf = @chain df_ begin
+        @transform(:rdf_line = "<http://example.org/" * HTTP.escapeuri(:subject) * "> <http://example.org/" * HTTP.escapeuri(:predicate) * "> <http://example.org/" * HTTP.escapeuri(:object) * "> .")
+        @select(:rdf_line)
+    end
+    append!(df_facts, df_rdf)
 end
 
 
-using DelimitedFiles
-
 open("oxigraph_rdf.nt", "w") do io
-    writedlm(io, df_rdf[:, :rdf_line])
+    writedlm(io, df_facts[:, :rdf_line])
 end
 
 

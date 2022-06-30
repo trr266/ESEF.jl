@@ -38,7 +38,8 @@ function serve_oxigraph(; nt_file_path = "")
 
         # 5. Check that we got the right number of items
         @assert n_items == countlines(nt_file_path)
-
+    catch
+        kill(oxigraph_process)
     finally
         # 6. Stop database
         kill(oxigraph_process)
