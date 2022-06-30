@@ -58,4 +58,18 @@ strip
 
 @chain 
 
-pluck_xbrl_json(df1[1, 1])
+df_ = pluck_xbrl_json(df1[1, 1])
+df_rdf = @chain df_ begin
+    @transform(:rdf_line = "<http://example.org/" * HTTP.escapeuri(:subject) * "> <http://example.org/" * HTTP.escapeuri(:predicate) * "> <http://example.org/" * HTTP.escapeuri(:object) * "> .")
+    @select(:rdf_line)
+end
+
+
+using DelimitedFiles
+
+open("oxigraph_rdf.nt", "w") do io
+    writedlm(io, df_rdf[:, :rdf_line])
+end
+
+
+serve_oxigraph(; nt_file_path = "oxigraph_rdf.nt")
