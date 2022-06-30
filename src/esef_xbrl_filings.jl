@@ -23,6 +23,7 @@ function get_esef_xbrl_filings()
 
     df = DataFrame()
     row_names = (:key, :entity_name, :country_alpha_2, :date, :filing_key, :error_count, :error_codes, :xbrl_json_path)
+    row_types = Tuple{String, String, String, String, String, Int, Vector{String}, Union{String, Nothing}}
 
     df_error = DataFrame()
 
@@ -37,17 +38,14 @@ function get_esef_xbrl_filings()
 
             country = filing_value["country"]
             date = filing_value["date"]
-            xbrl_json_path = filing_value["xbrl-json"]
 
-            xbrl_json_path = isnothing(xbrl_json_path) ? missing : xbrl_json_path
+            xbrl_json_path = nothing
 
             if haskey(filing_value, "xbrl-json")
-                
-            else
-                xbrl_json_path = ""
+                xbrl_json_path = filing_value["xbrl-json"]
             end
 
-            new_row = NamedTuple{row_names}([d_key, entity_name, country, date, filing_key, error_count, error_codes, xbrl_json_path])
+            new_row = NamedTuple{row_names, row_types}([d_key, entity_name, country, date, filing_key, error_count, error_codes, xbrl_json_path])
             push!(df, new_row)
 
             for error_code in error_codes
