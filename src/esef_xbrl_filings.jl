@@ -37,7 +37,12 @@ function get_esef_xbrl_filings()
 
             country = filing_value["country"]
             date = filing_value["date"]
-            xbrl_json_path = filing_value["xbrl-json"]
+
+            if haskey(filing_value, "xbrl-json")
+                xbrl_json_path = filing_value["xbrl-json"]
+            else
+                xbrl_json_path = ""
+            end
 
             new_row = NamedTuple{row_names}([d_key, entity_name, country, date, filing_key, error_count, error_codes, xbrl_json_path])
             push!(df, new_row)
