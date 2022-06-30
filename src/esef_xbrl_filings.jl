@@ -37,9 +37,12 @@ function get_esef_xbrl_filings()
 
             country = filing_value["country"]
             date = filing_value["date"]
+            xbrl_json_path = filing_value["xbrl-json"]
+
+            xbrl_json_path = isnothing(xbrl_json_path) ? "" : xbrl_json_path
 
             if haskey(filing_value, "xbrl-json")
-                xbrl_json_path = filing_value["xbrl-json"]
+                
             else
                 xbrl_json_path = ""
             end
