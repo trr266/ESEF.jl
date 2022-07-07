@@ -70,8 +70,6 @@ function export_concept_count_table()
 
     query_response = @chain query_item_types sparql_query
 
-    DataFrame(query_response["results"]["bindings"])
-
     df_concepts = DataFrame(concept = String[], frequency = Int[])
 
     for i in query_response["results"]["bindings"]
