@@ -53,6 +53,7 @@ function serve_oxigraph(; nt_file_path = "", keep_open = false)
             return oxigraph_process
         else
             kill(oxigraph_process)
+        end
     end
 end
 
