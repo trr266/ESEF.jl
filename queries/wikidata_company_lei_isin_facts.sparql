@@ -1,7 +1,11 @@
-SELECT ?entity ?p ?o
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX p: <http://www.wikidata.org/prop/>
+
+SELECT ?sub ?p ?o
 WHERE {
        # Retrieve all facts from public companies / entities with LEIs / entitites with ISINs
-       {?entity wdt:P31 wd:Q891723.} UNION {?entity p:P1278 ?legal_entity_prop .} UNION {?entity p:P946 ?isin_prop .}
+       {?sub wdt:P31 wd:Q891723.} UNION {?sub p:P1278 ?legal_entity_prop .} UNION {?sub p:P946 ?isin_prop .}
        
-       ?entity ?p ?o.
-      }
+       ?sub ?p ?o.
+}

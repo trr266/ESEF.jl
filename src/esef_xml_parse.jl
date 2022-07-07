@@ -132,22 +132,28 @@ function process_xbrl_filings()
         df_rdf = @chain df_ begin
             # TODO: Rethink normalization, instead of using uuid for facts at RDF subject field
             @transform(:rdf_line = "<http://example.org/" * HTTP.escapeuri(string(xbrl_json_url, :subject)) * "> <http://example.org/" * HTTP.escapeuri(:predicate) * "> <http://example.org/" * HTTP.escapeuri(:object) * "> .")
-            @select(:rdf_line)
         end
         append!(df_esef_rdf, df_rdf)
     end
 
-    rm("oxigraph_rdf.nt")
-    rm("esef_oxigraph_data", recursive=true)
 
-    open("oxigraph_rdf.nt", "w") do io
-        writedlm(io, df_esef_rdf[:, :rdf_line])
+    df_wikidata_rdf = get_company_facts()
+
+    df_wikidata_rdf = @chain df_wikidata_rdf begin
+        @subset(startswith(:subject, "http:") & startswith(:predicate, "http://") & startswith(:object, "http://") )
+        @transform(:rdf_line = "<" * :subject * "> <" * :predicate * "> <" * :object * "> .")        
     end
 
+    nt_file_path = "oxigraph_rdf.nt"
 
-    df_wikidata_rdf = @chain get_company_facts() @transform(:rdf_line = "<" * :subject * "> <" * :object * "> <" * :predicate * "> .") @select(:rdf_line)
+    rm(nt_file_path, force=true)
+    rm("esef_oxigraph_data", recursive=true, force=true)
 
-    open("oxigraph_rdf.nt", "w") do io
+    # TODO: Figure out why predicate and object are reversed for wikidata, making queries fail
+    # TODO: Import statements for Wikidata (e.g. LEIs)
+
+    open(nt_file_path, "w") do io
+        writedlm(io, df_esef_rdf[:, :rdf_line])
         writedlm(io, df_wikidata_rdf[:, :rdf_line])
     end
 

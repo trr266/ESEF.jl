@@ -109,7 +109,7 @@ end
 
 function get_company_facts()
     q_path = joinpath(@__DIR__, "..", "queries", "wikidata_company_lei_isin_facts.sparql")
-    df = @chain q_path query_wikidata() @select(:subject = :entity["value"], :object = :o["value"], :predicate = :p["value"])
+    df = @chain q_path query_wikidata() @select(:subject = :sub["value"], :predicate = :p["value"], :object = :o["value"])
     return df
 end
 
