@@ -8,6 +8,7 @@ using DelimitedFiles
 using Arrow
 
 include("oxigraph_server.jl")
+include("wikidata_public_companies.jl")
 
 function pluck_xbrl_json(url)
     r = HTTP.get(url)
@@ -123,7 +124,7 @@ function process_xbrl_filings()
         @select(:xbrl_json_url)
     end
 
-    df_facts = DataFrame()
+    df_esef_rdf = DataFrame()
 
     for r in eachrow(df)
         xbrl_json_url = r[:xbrl_json_url]
@@ -133,16 +134,22 @@ function process_xbrl_filings()
             @transform(:rdf_line = "<http://example.org/" * HTTP.escapeuri(string(xbrl_json_url, :subject)) * "> <http://example.org/" * HTTP.escapeuri(:predicate) * "> <http://example.org/" * HTTP.escapeuri(:object) * "> .")
             @select(:rdf_line)
         end
-        append!(df_facts, df_rdf)
+        append!(df_esef_rdf, df_rdf)
     end
 
     rm("oxigraph_rdf.nt")
     rm("esef_oxigraph_data", recursive=true)
 
     open("oxigraph_rdf.nt", "w") do io
-        writedlm(io, df_facts[:, :rdf_line])
+        writedlm(io, df_esef_rdf[:, :rdf_line])
     end
 
+
+    df_wikidata_rdf = @chain get_company_facts() @transform(:rdf_line = "<" * :subject * "> <" * :object * "> <" * :predicate * "> .") @select(:rdf_line)
+
+    open("oxigraph_rdf.nt", "w") do io
+        writedlm(io, df_wikidata_rdf[:, :rdf_line])
+    end
 
     oxigraph_process = serve_oxigraph(; nt_file_path = "oxigraph_rdf.nt", keep_open = true)
 

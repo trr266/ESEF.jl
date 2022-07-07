@@ -1,0 +1,7 @@
+SELECT ?entity ?p ?o
+WHERE {
+       # Retrieve all facts from public companies / entities with LEIs / entitites with ISINs
+       {?entity wdt:P31 wd:Q891723.} UNION {?entity p:P1278 ?legal_entity_prop .} UNION {?entity p:P946 ?isin_prop .}
+       
+       ?entity ?p ?o.
+      }
