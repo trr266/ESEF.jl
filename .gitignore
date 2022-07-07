@@ -5,3 +5,4 @@ esef_oxigraph_data
 *.nt
 *.rdf
 qlever
+*.arrow
