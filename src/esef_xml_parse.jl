@@ -10,8 +10,6 @@ using Arrow
 
 include("oxigraph_server.jl")
 
-
-
 function pluck_xbrl_json(url)
     r = HTTP.get(url)
 
@@ -69,6 +67,33 @@ function export_concept_count_table()
     """
 
     query_response = @chain query_item_types sparql_query
+
+    df_concepts = DataFrame(concept = String[], frequency = Int[])
+
+    for i in query_response["results"]["bindings"]
+        push!(df_concepts, [HTTP.unescapeuri(replace(i["obj_1"]["value"], "http://example.org/" => "")), parse(Int, i["obj_count"]["value"])])
+    end
+
+
+    return df_concepts
+end
+
+function export_profit_table()
+    query_profit_data = """
+        SELECT ?sub ?entity ?period ?unit ?decimals ?value WHERE {
+            ?sub <http://example.org/dimensions.concept> <http://example.org/ifrs-full%3AProfitLoss> .
+            ?sub <http://example.org/dimensions.period> ?period .
+            ?sub <http://example.org/decimals> ?decimals .
+            ?sub <http://example.org/dimensions.entity> ?entity .
+            ?sub <http://example.org/value> ?value .
+            ?sub <http://example.org/dimensions.unit> ?unit .
+        }
+    """
+    query_response = @chain query_profit_data sparql_query
+    query_response = query_response["results"]["bindings"]
+    
+    # Check that we didn't hit query row limit
+    @assert length(query_response) != 1000000
 
     df_concepts = DataFrame(concept = String[], frequency = Int[])
 
