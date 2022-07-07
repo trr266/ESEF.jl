@@ -5,7 +5,6 @@ using HTTP
 using JSON
 using DataFrames
 using DelimitedFiles
-using UUIDs
 using Arrow
 
 include("oxigraph_server.jl")
@@ -88,6 +87,7 @@ function export_profit_table()
             ?sub <http://example.org/value> ?value .
             ?sub <http://example.org/dimensions.unit> ?unit .
         }
+        LIMIT 1000000
     """
     query_response = @chain query_profit_data sparql_query
     query_response = query_response["results"]["bindings"]
@@ -95,14 +95,22 @@ function export_profit_table()
     # Check that we didn't hit query row limit
     @assert length(query_response) != 1000000
 
-    df_concepts = DataFrame(concept = String[], frequency = Int[])
+    # Map query to empty dataframe
+    df_profit = DataFrame(entity = String[], period = String[], unit = String[], decimals = Int[], value = Float64[])
 
-    for i in query_response["results"]["bindings"]
-        push!(df_concepts, [HTTP.unescapeuri(replace(i["obj_1"]["value"], "http://example.org/" => "")), parse(Int, i["obj_count"]["value"])])
+    for i in query_response
+        push!(df_profit,
+        [
+            HTTP.unescapeuri(replace(i["entity"]["value"], "http://example.org/" => "")),
+            HTTP.unescapeuri(replace(i["period"]["value"], "http://example.org/" => "")),
+            HTTP.unescapeuri(replace(i["unit"]["value"], "http://example.org/" => "")),
+            parse(Int, HTTP.unescapeuri(replace(i["decimals"]["value"], "http://example.org/" => ""))),
+            parse(Float64, HTTP.unescapeuri(replace(i["value"]["value"], "http://example.org/" => ""))),
+        ])
     end
 
 
-    return df_concepts
+    return df_profit
 end
 
 function process_xbrl_filings()
@@ -118,16 +126,18 @@ function process_xbrl_filings()
     df_facts = DataFrame()
 
     for r in eachrow(df)
-        df_ = pluck_xbrl_json(r[:xbrl_json_url])
+        xbrl_json_url = r[:xbrl_json_url]
+        df_ = pluck_xbrl_json(xbrl_json_url)
         df_rdf = @chain df_ begin
             # TODO: Rethink normalization, instead of using uuid for facts at RDF subject field
-            @transform(:rdf_line = "<http://example.org/" * string(uuid4()) * "> <http://example.org/" * HTTP.escapeuri(:predicate) * "> <http://example.org/" * HTTP.escapeuri(:object) * "> .")
+            @transform(:rdf_line = "<http://example.org/" * HTTP.escapeuri(string(xbrl_json_url, :subject)) * "> <http://example.org/" * HTTP.escapeuri(:predicate) * "> <http://example.org/" * HTTP.escapeuri(:object) * "> .")
             @select(:rdf_line)
         end
         append!(df_facts, df_rdf)
     end
 
     rm("oxigraph_rdf.nt")
+    rm("esef_oxigraph_data", recursive=true)
 
     open("oxigraph_rdf.nt", "w") do io
         writedlm(io, df_facts[:, :rdf_line])
@@ -138,9 +148,11 @@ function process_xbrl_filings()
 
     # Rollup of all concepts available from ESEF data using XBRL's filings API
     df_concepts = export_concept_count_table()
-    Arrow.write("concept_df.arrow", df_concepts)
+    @chain df_concepts @sort(-:frequency) Arrow.write("concept_df.arrow", _)
 
     # table = Arrow.Table("concept_df.arrow")
 
+    df_profit = export_profit_table()
+    @chain df_profit Arrow.write("profit_df.arrow", _)
     kill(oxigraph_process)
 end

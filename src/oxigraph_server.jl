@@ -38,7 +38,7 @@ function serve_oxigraph(; nt_file_path = "", keep_open = false)
     oxigraph_process = run(`$(ENV["HOME"])/.cargo/bin/oxigraph_server --location esef_oxigraph_data serve`; wait=false)
 
     try
-        # 4. Query database
+        # 4. Test query database
         query_response = @chain "SELECT (COUNT(*) as ?count) WHERE { ?s ?p ?o } LIMIT 10" sparql_query
 
         n_items = @chain query_response["results"]["bindings"][1]["count"]["value"] parse(Int64, _)

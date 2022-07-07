@@ -6,3 +6,4 @@ esef_oxigraph_data
 *.rdf
 qlever
 *.arrow
+*.csv
