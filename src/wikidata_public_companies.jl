@@ -32,7 +32,7 @@ end
 
 function query_wikidata(sparql_query_file; params=Dict())
 
-    headers = ["Accept" => "application/sparql-results+json", "Content-Type"=>"application/x-www-form-urlencoded"]
+    headers = ["Accept" => "application/sparql-results+json", "Content-Type" => "application/x-www-form-urlencoded"]
     url = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 
     query_string = @chain sparql_query_file read(String) render(params) HTTP.escapeuri()
@@ -78,12 +78,12 @@ function basic_wikidata_preprocessing(df)
 
     # Add in country names
     country_lookup = get_country_codes()
-    
+
     df = @chain df begin
         leftjoin(_, (@chain country_lookup @select(:region, :country_alpha_2)), on=:country_alpha_2, matchmissing=:notequal)
         leftjoin(_, (@chain country_lookup @select(:isin_alpha_2 = :country_alpha_2, :isin_country = :country, :isin_region = :region)), on=:isin_alpha_2, matchmissing=:notequal)
     end
-    
+
     df = @chain df @transform(:esef_regulated = esef_regulated(:isin_region, :region))
 
 
@@ -94,7 +94,7 @@ function get_non_lei_isin_companies_wikidata()
     q_path = joinpath(@__DIR__, "..", "queries", "wikidata_non_lei_isin_firms.sparql")
     df = @chain q_path query_wikidata()
     df = @chain df @transform(:lei_id = nothing)
-    df = basic_wikidata_preprocessing(df) 
+    df = basic_wikidata_preprocessing(df)
 
     return df
 end
@@ -103,7 +103,7 @@ function get_lei_companies_wikidata()
     q_path = joinpath(@__DIR__, "..", "queries", "wikidata_lei_entities.sparql")
     df = @chain q_path query_wikidata()
     df = basic_wikidata_preprocessing(df)
-    
+
     return df
 end
 
@@ -133,17 +133,17 @@ function lookup_company_by_name(company_name)
         if nrow(df) == 0
             return DataFrame()
         end
-    
+
         df = @chain df begin
             @transform(:wikidata_uri = :company["value"],
-            :company_label = :companyLabel["value"],
-            :company_description = :companyDescrip["value"])
+                :company_label = :companyLabel["value"],
+                :company_description = :companyDescrip["value"])
             @groupby(:wikidata_uri)
             @combine(:company_label = :company_label[1], :company_description = :company_description[1])
             @select(:wikidata_uri, :company_label, :company_description)
         end
-    
-        return df        
+
+        return df
     catch e
         return DataFrame()
     end

@@ -39,15 +39,15 @@ function pluck_xbrl_json(url)
 end
 
 
-function rec_flatten_dict(d, prefix_delim = ".")
+function rec_flatten_dict(d, prefix_delim=".")
     # Source: https://discourse.julialang.org/t/question-is-there-a-function-to-flatten-a-nested-dictionary/54462/2
     new_d = empty(d)
     for (key, value) in pairs(d)
         if isa(value, Dict)
-             flattened_value = rec_flatten_dict(value, prefix_delim)
-             for (ikey, ivalue) in pairs(flattened_value)
-                 new_d["$key.$ikey"] = ivalue
-             end
+            flattened_value = rec_flatten_dict(value, prefix_delim)
+            for (ikey, ivalue) in pairs(flattened_value)
+                new_d["$key.$ikey"] = ivalue
+            end
         else
             new_d[key] = value
         end
@@ -68,7 +68,7 @@ function export_concept_count_table()
 
     query_response = @chain query_item_types sparql_query
 
-    df_concepts = DataFrame(concept = String[], frequency = Int[])
+    df_concepts = DataFrame(concept=String[], frequency=Int[])
 
     for i in query_response["results"]["bindings"]
         push!(df_concepts, [HTTP.unescapeuri(replace(i["obj_1"]["value"], "http://example.org/" => "")), parse(Int, i["obj_count"]["value"])])
@@ -92,22 +92,22 @@ function export_profit_table()
     """
     query_response = @chain query_profit_data sparql_query
     query_response = query_response["results"]["bindings"]
-    
+
     # Check that we didn't hit query row limit
     @assert length(query_response) != 1000000
 
     # Map query to empty dataframe
-    df_profit = DataFrame(entity = String[], period = String[], unit = String[], decimals = Int[], value = Float64[])
+    df_profit = DataFrame(entity=String[], period=String[], unit=String[], decimals=Int[], value=Float64[])
 
     for i in query_response
         push!(df_profit,
-        [
-            HTTP.unescapeuri(replace(i["entity"]["value"], "http://example.org/" => "")),
-            HTTP.unescapeuri(replace(i["period"]["value"], "http://example.org/" => "")),
-            HTTP.unescapeuri(replace(i["unit"]["value"], "http://example.org/" => "")),
-            parse(Int, HTTP.unescapeuri(replace(i["decimals"]["value"], "http://example.org/" => ""))),
-            parse(Float64, HTTP.unescapeuri(replace(i["value"]["value"], "http://example.org/" => ""))),
-        ])
+            [
+                HTTP.unescapeuri(replace(i["entity"]["value"], "http://example.org/" => "")),
+                HTTP.unescapeuri(replace(i["period"]["value"], "http://example.org/" => "")),
+                HTTP.unescapeuri(replace(i["unit"]["value"], "http://example.org/" => "")),
+                parse(Int, HTTP.unescapeuri(replace(i["decimals"]["value"], "http://example.org/" => ""))),
+                parse(Float64, HTTP.unescapeuri(replace(i["value"]["value"], "http://example.org/" => ""))),
+            ])
     end
 
 
@@ -153,7 +153,7 @@ function process_xbrl_filings()
         df_wikidata_rdf = get_company_facts()
 
         df_wikidata_rdf = @chain df_wikidata_rdf begin
-            @subset(startswith(:subject, "http:") & startswith(:predicate, "http://") & startswith(:object, "http://") )
+            @subset(startswith(:subject, "http:") & startswith(:predicate, "http://") & startswith(:object, "http://"))
             @transform(:rdf_line = "<" * :subject * "> <" * :predicate * "> <" * :object * "> .")
             unique
         end
@@ -174,7 +174,7 @@ function process_xbrl_filings()
         writedlm(io, df_wikidata_rdf[:, :rdf_line])
     end
 
-    oxigraph_process = serve_oxigraph(; nt_file_path = "oxigraph_rdf.nt", keep_open = true)
+    oxigraph_process = serve_oxigraph(; nt_file_path="oxigraph_rdf.nt", keep_open=true)
 
     # Rollup of all concepts available from ESEF data using XBRL's filings API
     df_concepts = export_concept_count_table()

@@ -6,7 +6,7 @@ using Arrow
 function sparql_query(query)
     headers = ["Content-Type" => "application/sparql-query", "Accept" => "application/sparql-results+json"]
     url = "http://localhost:7878/query"
-    
+
     r = HTTP.request("POST", url, headers, query)
 
     # Check 200 HTTP status code
@@ -16,11 +16,11 @@ function sparql_query(query)
         String()
         JSON.parse()
     end
-    
+
     return raw_data
 end
 
-function serve_oxigraph(; nt_file_path = "", keep_open = false)
+function serve_oxigraph(; nt_file_path="", keep_open=false)
     # 1. Install oxigraph server
     run(`cargo install oxigraph_server`)
 

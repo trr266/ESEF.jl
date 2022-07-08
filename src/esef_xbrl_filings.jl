@@ -23,7 +23,7 @@ function get_esef_xbrl_filings()
 
     df = DataFrame()
     row_names = (:key, :entity_name, :country_alpha_2, :date, :filing_key, :error_count, :error_codes, :xbrl_json_path)
-    
+
     df_error = DataFrame()
 
     # Parse XBRL ESEF Index Object

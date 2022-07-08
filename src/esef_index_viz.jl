@@ -26,7 +26,7 @@ function generate_esef_homepage_viz(; map_output="web")
     df, df_error = get_esef_xbrl_filings()
 
     viz = Dict()
-    
+
     df = @chain df begin
         leftjoin(df_wikidata_lei, on=(:key => :lei_id), matchmissing=:notequal, makeunique=true)
     end
@@ -143,7 +143,7 @@ function generate_esef_homepage_viz(; map_output="web")
     end
 
     fg2_bar = (@chain country_rollup @subset(:report_count > 0)) |>
-            @vlplot({:bar, color = trr_266_colors[1]}, width = 500, height = 300,
+              @vlplot({:bar, color = trr_266_colors[1]}, width = 500, height = 300,
         x = {"country:o", title = nothing, sort = "-y"},
         y = {:report_count, title = "Report Count"},
         title = {
@@ -230,7 +230,7 @@ function generate_esef_homepage_viz(; map_output="web")
     end
 
     fg_error_country_heatmap = df_error_country |>
-                            @vlplot(:rect, width = 500, height = 500,
+                               @vlplot(:rect, width = 500, height = 500,
         x = {"country:o", title = nothing},
         y = {"error_code:o", title = "Error Code"},
         color = {:error_count, title = "Error Count", scale = {range = ["#ffffff", trr_266_colors[2]]}},
@@ -244,7 +244,7 @@ function generate_esef_homepage_viz(; map_output="web")
     end
 
     fg_country_date = df_country_date |>
-                    @vlplot(:rect, width = 500, height = 500,
+                      @vlplot(:rect, width = 500, height = 500,
         y = {"country:o", title = nothing},
         x = {"date:o", title = "Date"},
         color = {"report_count:q", title = "Report Count", scale = {range = ["#ffffff", trr_266_colors[2]]}},
@@ -252,13 +252,13 @@ function generate_esef_homepage_viz(; map_output="web")
     )
 
     fg_date_bar = df_country_date |>
-                @vlplot({:bar, color = trr_266_colors[2]}, width = 500, height = 100,
+                  @vlplot({:bar, color = trr_266_colors[2]}, width = 500, height = 100,
         y = {"sum(report_count)", title = "Report Count"},
         x = {"date:o", title = "Date"},
         title = "Report Publication by Date"
     )
 
-    
+
     fg_date_composite = [fg_date_bar; fg_country_date]
     viz["esef_publication_date_composite"] = fg_date_composite
 
