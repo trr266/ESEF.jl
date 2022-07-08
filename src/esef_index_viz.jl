@@ -228,7 +228,9 @@ function generate_esef_homepage_viz(; map_output="web")
         y = {"error_code:o", title = "Error Code", sort = "-x"},
         x = {"error_count", title = "Error Count"},
         title = {text = "ESEF Error Frequency", subtitle = "(XBRL Repository)"}
-    )(df_error_count)
+    )(
+        df_error_count
+    )
     viz["esef_error_type_freq_bar"] = fg_error_freq_bar
 
     df_error_country = @chain df_error_wide begin
@@ -248,7 +250,9 @@ function generate_esef_homepage_viz(; map_output="web")
             scale = {range = ["#ffffff", trr_266_colors[2]]},
         },
         title = "Error Frequency by Country and Type"
-    )(df_error_country)
+    )(
+        df_error_country
+    )
     viz["esef_error_country_heatmap"] = fg_error_country_heatmap
 
     df_country_date = @chain df begin
@@ -268,7 +272,9 @@ function generate_esef_homepage_viz(; map_output="web")
             scale = {range = ["#ffffff", trr_266_colors[2]]},
         },
         title = "Report Publication by Country and Date"
-    )(df_country_date)
+    )(
+        df_country_date
+    )
 
     fg_date_bar = @vlplot(
         {:bar, color = trr_266_colors[2]},
@@ -277,7 +283,9 @@ function generate_esef_homepage_viz(; map_output="web")
         y = {"sum(report_count)", title = "Report Count"},
         x = {"date:o", title = "Date"},
         title = "Report Publication by Date"
-    )(df_country_date)
+    )(
+        df_country_date
+    )
 
     fg_date_composite = [fg_date_bar; fg_country_date]
     viz["esef_publication_date_composite"] = fg_date_composite
