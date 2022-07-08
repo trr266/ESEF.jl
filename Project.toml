@@ -28,6 +28,7 @@ YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
 [compat]
 AlgebraOfGraphics = "0.6"
+Arrow = "2"
 CSV = "0.10"
 CairoMakie = "0.8"
 Chain = "0.4"
