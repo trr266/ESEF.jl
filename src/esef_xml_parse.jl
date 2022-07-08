@@ -116,7 +116,7 @@ end
 
 function process_xbrl_filings()
 
-    if isfile("df_wikidata_rdf.arrow") & isfile("df_esef_rdf.arrow")
+    if !(isfile("df_wikidata_rdf.arrow") & isfile("df_esef_rdf.arrow"))
         df, df_error = ESEF.get_esef_xbrl_filings()
 
         df = @chain df begin
@@ -154,7 +154,8 @@ function process_xbrl_filings()
 
         df_wikidata_rdf = @chain df_wikidata_rdf begin
             @subset(startswith(:subject, "http:") & startswith(:predicate, "http://") & startswith(:object, "http://") )
-            @transform(:rdf_line = "<" * :subject * "> <" * :predicate * "> <" * :object * "> .")        
+            @transform(:rdf_line = "<" * :subject * "> <" * :predicate * "> <" * :object * "> .")
+            unique
         end
 
         @chain df_wikidata_rdf Arrow.write("df_wikidata_rdf.arrow", _)
@@ -169,7 +170,7 @@ function process_xbrl_filings()
     # TODO: Import statements for Wikidata (e.g. LEIs)
 
     open(nt_file_path, "w") do io
-        writedlm(io, df_esef_rdf[:, :rdf_line])
+        # writedlm(io, df_esef_rdf[:, :rdf_line])
         writedlm(io, df_wikidata_rdf[:, :rdf_line])
     end
 
