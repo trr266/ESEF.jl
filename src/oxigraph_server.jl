@@ -46,6 +46,7 @@ function serve_oxigraph(; nt_file_path = "", keep_open = false)
         # 5. Check that we got the right number of items
         @assert n_items == countlines(nt_file_path)
     catch
+        @assert n_items == countlines(nt_file_path), "Basic integrity check failed, check whether dataset has duplicates!"
         kill(oxigraph_process)
     finally
         # 6. Stop database
