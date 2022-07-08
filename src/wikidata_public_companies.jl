@@ -8,31 +8,37 @@ using Mustache
 function enrich_wikidata_with_twitter_data(df_wikidata)
     tw_lookup = DataFrame(:qid => [], :twitter_user => [])
 
-    for r in eachrow((@chain df_wikidata @subset(!ismissing(:twitter_handles) & (:twitter_handles != "missing"))))
+    for r in eachrow((@chain df_wikidata @subset(
+        !ismissing(:twitter_handles) & (:twitter_handles != "missing")
+    )))
         for t_user in split(r[:twitter_handles], ",")
             push!(tw_lookup, [r[:wikidata_uri], t_user])
         end
     end
 
-
     df_twitter = query_twitter_user_profiles(unique(tw_lookup[!, :twitter_user]))
 
     tw_lookup = @chain tw_lookup begin
-        leftjoin((@chain df_twitter @select(:username, :followers_count)), on=[:twitter_user => :username])
+        leftjoin(
+            (@chain df_twitter @select(:username, :followers_count));
+            on=[:twitter_user => :username],
+        )
         @groupby(:qid)
         @combine(:agg_followers_count = sum(:followers_count))
     end
 
     df_wikidata = @chain df_wikidata begin
-        leftjoin(tw_lookup, on=[:wikidata_uri => :qid])
+        leftjoin(tw_lookup; on=[:wikidata_uri => :qid])
     end
 
     return df_wikidata
 end
 
 function query_wikidata(sparql_query_file; params=Dict())
-
-    headers = ["Accept" => "application/sparql-results+json", "Content-Type" => "application/x-www-form-urlencoded"]
+    headers = [
+        "Accept" => "application/sparql-results+json",
+        "Content-Type" => "application/x-www-form-urlencoded",
+    ]
     url = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 
     query_string = @chain sparql_query_file read(String) render(params) HTTP.escapeuri()
@@ -71,24 +77,56 @@ function basic_wikidata_preprocessing(df)
         @transform(:isin_alpha_2 = @m first(:isin_id, 2))
         @transform(:twitter_handle = @m :twitter_value["value"])
         @transform(:lei_id = @m :lei_value["value"])
-        @groupby(:wikidata_uri, :company_label, :country, :country_uri, :country_alpha_2, :isin_id, :isin_alpha_2, :lei_id)
+        @groupby(
+            :wikidata_uri,
+            :company_label,
+            :country,
+            :country_uri,
+            :country_alpha_2,
+            :isin_id,
+            :isin_alpha_2,
+            :lei_id
+        )
         @combine(:twitter_handles = join(:twitter_handle, ","))
-        @select(:wikidata_uri, :company_label, :country, :country_uri, :country_alpha_2, :isin_id, :isin_alpha_2, :lei_id, :twitter_handles)
+        @select(
+            :wikidata_uri,
+            :company_label,
+            :country,
+            :country_uri,
+            :country_alpha_2,
+            :isin_id,
+            :isin_alpha_2,
+            :lei_id,
+            :twitter_handles
+        )
     end
 
     # Add in country names
     country_lookup = get_country_codes()
 
     df = @chain df begin
-        leftjoin(_, (@chain country_lookup @select(:region, :country_alpha_2)), on=:country_alpha_2, matchmissing=:notequal)
-        leftjoin(_, (@chain country_lookup @select(:isin_alpha_2 = :country_alpha_2, :isin_country = :country, :isin_region = :region)), on=:isin_alpha_2, matchmissing=:notequal)
+        leftjoin(
+            _,
+            (@chain country_lookup @select(:region, :country_alpha_2));
+            on=:country_alpha_2,
+            matchmissing=:notequal,
+        )
+        leftjoin(
+            _,
+            (@chain country_lookup @select(
+                :isin_alpha_2 = :country_alpha_2,
+                :isin_country = :country,
+                :isin_region = :region
+            ));
+            on=:isin_alpha_2,
+            matchmissing=:notequal,
+        )
     end
 
-    df = @chain df @transform(:esef_regulated = esef_regulated(:isin_region, :region))
-
-
+    return df = @chain df @transform(
+        :esef_regulated = esef_regulated(:isin_region, :region)
+    )
 end
-
 
 function get_non_lei_isin_companies_wikidata()
     q_path = joinpath(@__DIR__, "..", "queries", "wikidata_non_lei_isin_firms.sparql")
@@ -109,7 +147,9 @@ end
 
 function get_company_facts()
     q_path = joinpath(@__DIR__, "..", "queries", "wikidata_company_lei_isin_facts.sparql")
-    df = @chain q_path query_wikidata() @select(:subject = :sub["value"], :predicate = :p["value"], :object = :o["value"])
+    df = @chain q_path query_wikidata() @select(
+        :subject = :sub["value"], :predicate = :p["value"], :object = :o["value"]
+    )
     return df
 end
 
@@ -135,11 +175,16 @@ function lookup_company_by_name(company_name)
         end
 
         df = @chain df begin
-            @transform(:wikidata_uri = :company["value"],
+            @transform(
+                :wikidata_uri = :company["value"],
                 :company_label = :companyLabel["value"],
-                :company_description = :companyDescrip["value"])
+                :company_description = :companyDescrip["value"]
+            )
             @groupby(:wikidata_uri)
-            @combine(:company_label = :company_label[1], :company_description = :company_description[1])
+            @combine(
+                :company_label = :company_label[1],
+                :company_description = :company_description[1]
+            )
             @select(:wikidata_uri, :company_label, :company_description)
         end
 
@@ -148,6 +193,3 @@ function lookup_company_by_name(company_name)
         return DataFrame()
     end
 end
-
-
-

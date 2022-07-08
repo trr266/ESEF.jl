@@ -11,5 +11,4 @@ include("esef_xbrl_filings.jl")
 include("esma_regulated_markets.jl")
 include("oxigraph_server.jl")
 
-
 end

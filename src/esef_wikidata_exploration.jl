@@ -25,16 +25,16 @@ function esef_wikidata_mini_analysis()
     # Drop firms where country is missing
     # df_wikidata_isin = @chain df_wikidata_isin @subset(:esef_regulated; skipmissing=true) 
 
-
     # TODO: Look at this group of companies who are subject to regulation, but not available via XBRL
     # @chain df_wikidata_isin @subset(:country == "Germany"; skipmissing=true)
 
     df, df_error = get_esef_xbrl_filings()
 
     df = @chain df begin
-        leftjoin(df_wikidata_lei, on=(:key => :lei_id), matchmissing=:notequal, makeunique=true)
+        leftjoin(
+            df_wikidata_lei; on=(:key => :lei_id), matchmissing=:notequal, makeunique=true
+        )
     end
-
 
     df_1 = @chain df begin
         @subset(ismissing(:wikidata_uri))
