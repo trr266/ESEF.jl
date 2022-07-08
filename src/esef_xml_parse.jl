@@ -116,32 +116,48 @@ end
 
 function process_xbrl_filings()
 
-    df, df_error = ESEF.get_esef_xbrl_filings()
+    if isfile("df_wikidata_rdf.arrow") & isfile("df_esef_rdf.arrow")
+        df, df_error = ESEF.get_esef_xbrl_filings()
 
-    df = @chain df begin
-        @subset(:xbrl_json_path != nothing)
-        @transform(:xbrl_json_url = "https://filings.xbrl.org/" * :filing_key * "/" * HTTP.escapeuri(:xbrl_json_path))
-        @select(:xbrl_json_url)
-    end
-
-    df_esef_rdf = DataFrame()
-
-    for r in eachrow(df)
-        xbrl_json_url = r[:xbrl_json_url]
-        df_ = pluck_xbrl_json(xbrl_json_url)
-        df_rdf = @chain df_ begin
-            # TODO: Rethink normalization, instead of using uuid for facts at RDF subject field
-            @transform(:rdf_line = "<http://example.org/" * HTTP.escapeuri(string(xbrl_json_url, :subject)) * "> <http://example.org/" * HTTP.escapeuri(:predicate) * "> <http://example.org/" * HTTP.escapeuri(:object) * "> .")
+        df = @chain df begin
+            @subset(:xbrl_json_path != nothing)
+            @transform(:xbrl_json_url = "https://filings.xbrl.org/" * :filing_key * "/" * HTTP.escapeuri(:xbrl_json_path))
+            @select(:xbrl_json_url)
         end
-        append!(df_esef_rdf, df_rdf)
+    end
+
+    if isfile("df_esef_rdf.arrow")
+        df_esef_rdf = DataFrame(Arrow.read("df_esef_rdf.arrow"))
+    else
+
+        df_esef_rdf = DataFrame()
+
+        for r in eachrow(df)
+            xbrl_json_url = r[:xbrl_json_url]
+            df_ = pluck_xbrl_json(xbrl_json_url)
+            df_rdf = @chain df_ begin
+                # TODO: Rethink normalization, instead of using uuid for facts at RDF subject field
+                @transform(:rdf_line = "<http://example.org/" * HTTP.escapeuri(string(xbrl_json_url, :subject)) * "> <http://example.org/" * HTTP.escapeuri(:predicate) * "> <http://example.org/" * HTTP.escapeuri(:object) * "> .")
+            end
+            append!(df_esef_rdf, df_rdf)
+        end
+
+        @chain df_esef_rdf Arrow.write("df_esef_rdf.arrow", _)
+
     end
 
 
-    df_wikidata_rdf = get_company_facts()
+    if isfile("df_wikidata_rdf.arrow")
+        df_wikidata_rdf = DataFrame(Arrow.read("df_wikidata_rdf.arrow"))
+    else
+        df_wikidata_rdf = get_company_facts()
 
-    df_wikidata_rdf = @chain df_wikidata_rdf begin
-        @subset(startswith(:subject, "http:") & startswith(:predicate, "http://") & startswith(:object, "http://") )
-        @transform(:rdf_line = "<" * :subject * "> <" * :predicate * "> <" * :object * "> .")        
+        df_wikidata_rdf = @chain df_wikidata_rdf begin
+            @subset(startswith(:subject, "http:") & startswith(:predicate, "http://") & startswith(:object, "http://") )
+            @transform(:rdf_line = "<" * :subject * "> <" * :predicate * "> <" * :object * "> .")        
+        end
+
+        @chain df_wikidata_rdf Arrow.write("df_wikidata_rdf.arrow", _)
     end
 
     nt_file_path = "oxigraph_rdf.nt"
