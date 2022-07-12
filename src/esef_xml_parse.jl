@@ -159,7 +159,7 @@ function process_xbrl_filings()
     end
 
     if isfile("df_esef_rdf.arrow")
-        df_esef_rdf = DataFrame(Arrow.read("df_esef_rdf.arrow"))
+        df_esef_rdf = DataFrame(Arrow.Table("df_esef_rdf.arrow"))
     else
         df_esef_rdf = DataFrame()
 
@@ -186,18 +186,21 @@ function process_xbrl_filings()
     end
 
     if isfile("df_wikidata_rdf.arrow")
-        df_wikidata_rdf = DataFrame(Arrow.read("df_wikidata_rdf.arrow"))
+        df_wikidata_rdf = DataFrame(Arrow.Table("df_wikidata_rdf.arrow"))
     else
         df_wikidata_rdf = get_company_facts()
 
+        function format_nt(s_p_o_string)
+            if startswith(s_p_o_string, "http://")
+                return "<" * s_p_o_string * ">"
+            else
+                return " \"$(HTTP.escapeuri(s_p_o_string))\" "
+            end
+        end
+
         df_wikidata_rdf = @chain df_wikidata_rdf begin
-            @subset(
-                startswith(:subject, "http:") &
-                    startswith(:predicate, "http://") &
-                    startswith(:object, "http://")
-            )
             @transform(
-                :rdf_line = "<" * :subject * "> <" * :predicate * "> <" * :object * "> ."
+                :rdf_line = join([format_nt(:subject), format_nt(:predicate) * format_nt(:object)], " ") * " ."
             )
             unique
         end
@@ -215,7 +218,7 @@ function process_xbrl_filings()
 
     open(nt_file_path, "w") do io
         # writedlm(io, df_esef_rdf[:, :rdf_line])
-        writedlm(io, df_wikidata_rdf[:, :rdf_line])
+        writedlm(io, df_wikidata_rdf[:, :rdf_line], quotes=false)
     end
 
     oxigraph_process = serve_oxigraph(; nt_file_path="oxigraph_rdf.nt", keep_open=true)

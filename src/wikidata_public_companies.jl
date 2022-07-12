@@ -35,6 +35,7 @@ function enrich_wikidata_with_twitter_data(df_wikidata)
 end
 
 function query_wikidata(sparql_query_file; params=Dict())
+    # TODO: Consider requesting verbose format, parsing based on data type
     headers = [
         "Accept" => "application/sparql-results+json",
         "Content-Type" => "application/x-www-form-urlencoded",
@@ -129,6 +130,7 @@ function basic_wikidata_preprocessing(df)
 end
 
 function get_non_lei_isin_companies_wikidata()
+    # TODO: swap this out for artifacts https://pkgdocs.julialang.org/v1/creating-packages/
     q_path = joinpath(@__DIR__, "..", "queries", "wikidata_non_lei_isin_firms.sparql")
     df = @chain q_path query_wikidata()
     df = @chain df @transform(:lei_id = nothing)
@@ -138,6 +140,7 @@ function get_non_lei_isin_companies_wikidata()
 end
 
 function get_lei_companies_wikidata()
+    # TODO: swap this out for artifacts https://pkgdocs.julialang.org/v1/creating-packages/=
     q_path = joinpath(@__DIR__, "..", "queries", "wikidata_lei_entities.sparql")
     df = @chain q_path query_wikidata()
     df = basic_wikidata_preprocessing(df)
@@ -146,6 +149,7 @@ function get_lei_companies_wikidata()
 end
 
 function get_company_facts()
+    # TODO: swap this out for artifacts https://pkgdocs.julialang.org/v1/creating-packages/=
     q_path = joinpath(@__DIR__, "..", "queries", "wikidata_company_lei_isin_facts.sparql")
     df = @chain q_path query_wikidata() @select(
         :subject = :sub["value"], :predicate = :p["value"], :object = :o["value"]
