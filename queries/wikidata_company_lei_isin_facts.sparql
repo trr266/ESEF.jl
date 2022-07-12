@@ -7,6 +7,9 @@ SELECT ?sub ?p ?o
 WHERE {
        # Retrieve all facts from public companies / entities with LEIs / entitites with ISINs
        {
+       ?sub p:P31 ?statement0 . # Entities which are instances of businesses or its subclasses
+       ?statement0 (ps:P31/(wdt:P279*)) wd:Q4830453 .
+       } UNION {
        ?sub wdt:P31 wd:Q891723. # Facts associated with public companies
        } UNION {
        ?sub p:P1278 ?legal_entity_prop . # Facts associated with LEI
@@ -18,6 +21,12 @@ WHERE {
        } UNION {
        ?blank2 p:P946 ?sub .
        ?sub ps:P946 ?o . # ISIN ID
+       } UNION {
+       ?blank3 (p:P2002) ?sub .
+       ?sub (ps:P2002) ?o . # Twitter username
+       } UNION {
+       ?blank4 p:P17 ?sub .
+       ?sub ps:P17 ?o . # Country
        }
        
        ?sub ?p ?o.
