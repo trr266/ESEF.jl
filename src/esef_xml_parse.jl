@@ -200,7 +200,11 @@ function process_xbrl_filings()
 
         df_wikidata_rdf = @chain df_wikidata_rdf begin
             @transform(
-                :rdf_line = join([format_nt(:subject), format_nt(:predicate) * format_nt(:object)], " ") * " ."
+                :rdf_line =
+                    join(
+                        [format_nt(:subject), format_nt(:predicate) * format_nt(:object)],
+                        " ",
+                    ) * " ."
             )
             unique
         end
@@ -218,7 +222,7 @@ function process_xbrl_filings()
 
     open(nt_file_path, "w") do io
         # writedlm(io, df_esef_rdf[:, :rdf_line])
-        writedlm(io, df_wikidata_rdf[:, :rdf_line], quotes=false)
+        writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
     end
 
     oxigraph_process = serve_oxigraph(; nt_file_path="oxigraph_rdf.nt", keep_open=true)
