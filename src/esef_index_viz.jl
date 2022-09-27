@@ -13,6 +13,8 @@ using URIParser
 using VegaDatasets
 using VegaLite
 using Setfield
+using GeoMakie
+using GeoJSON
 
 trr_266_colors = ["#1b8a8f", "#ffb43b", "#6ecae2", "#944664"] # petrol, yellow, blue, red
 
