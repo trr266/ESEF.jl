@@ -3,5 +3,6 @@
       "julialang.language-julia"
     ],
     "runArgs": ["--privileged"],
-    "dockerFile": "Dockerfile"
+    "dockerFile": "Dockerfile",
+    "postCreateCommand": "julia -e 'using Pkg; Pkg.activate(\".\"); Pkg.instantiate()'"
 }
