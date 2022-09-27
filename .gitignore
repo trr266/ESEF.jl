@@ -7,3 +7,4 @@ esef_oxigraph_data
 qlever
 *.arrow
 *.csv
+.vscode
