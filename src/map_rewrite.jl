@@ -30,10 +30,10 @@ end
 
 function generate_esef_basemap(country_rollup)
     url = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/"
-    country = Downloads.download(url * "ne_110m_admin_0_countries.geojson")
+    country = Downloads.download(url * "ne_50m_admin_0_countries.geojson")
     country_json = JSON.parse(read(country, String))
 
-    tiny_country = Downloads.download(url * "ne_110m_admin_0_tiny_countries.geojson")
+    tiny_country = Downloads.download(url * "ne_50m_admin_0_tiny_countries.geojson")
     tiny_country_json = JSON.parse(read(tiny_country, String))
 
     malta = [c for c in tiny_country_json["features"] if c["properties"]["ADMIN"] == "Malta"]
@@ -44,20 +44,26 @@ function generate_esef_basemap(country_rollup)
     return country_geo
 end
 
+
+
 begin
-    source = "+proj=longlat +datum=WGS84"
-    dest = "+proj=natearth2"
-    # {type = :azimuthalEqualArea, scale = 525, center = [15, 53]},
+    fontsize_theme = Theme(fontsize = 20)
+    set_theme!(fontsize_theme)
+    dest = "+proj=laea"
+    source = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 
     fig = Figure(resolution = (1000,500))
-    ga = GeoAxis(
-        fig[1, 1];
-        source = source,
-        dest = dest
-    )
+    gd = fig[1, 1] = GridLayout()
 
-    ga.xticklabelsvisible[] = false
-    ga.yticklabelsvisible[] = false
+    ga = GeoAxis(
+        gd[1, 1];
+        source = source,
+        dest = dest,
+        lonlims=(-28, 35),
+        latlims = (35, 72),
+        title="ESEF Reports Availability by Country",
+        subtitle = "(XBRL Repository)",
+        )
 
     eu_geojson = generate_esef_basemap(country_rollup)
 
@@ -67,16 +73,27 @@ begin
     end
 
     max_reports = maximum(country_rollup[!, :report_count])
-
+    color_scale_ = range(parse(Colorant, "#ffffff"), parse(Colorant, "#ffb43b"), max_reports+1)
+    # NOTE: Work around for `ERROR: MethodError: no method matching MultiPolygon(::Point{2, Float32})`
     for (c, report_count) in zip(eu_geojson, report_count_vect)
         poly!(ga, GeoMakie.geo2basic(c);
-            strokecolor = :white,
+            strokecolor = RGBf(0.90, 0.90, 0.90),
             strokewidth = 1,
-            color= colormap("Blues", max_reports)[report_count],
+            color= color_scale_[report_count],
+            label="test"
         )
     end
-    fig
+
+
+    cbar = Colorbar(gd[1,2]; colorrange = (0, max_reports), colormap = color_scale_, label = "ESEF Reports (all-time, per country)", height = Relative(0.65))
+
+    hidedecorations!(ga)
+    # hidespines!(ga)
+    colgap!(gd, 1)
+    rowgap!(gd, 1)
+
+    cbar.tellheight = true
+    cbar.width = 50
 end
 
-
-GeoMakie.geo2basic(eu_geojson[1])
+fig
