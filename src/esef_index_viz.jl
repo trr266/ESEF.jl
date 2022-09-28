@@ -176,8 +176,6 @@ function generate_esef_mandate_map()
 
     axislegend(ga; merge=true)
 
-    # cbar = Colorbar(gd[1,2]; colormap = color_scale_, label = "ESEF Reports (all-time, per country)", height = Relative(0.65))
-
     hidedecorations!(ga)
     hidespines!(ga)
     colgap!(gd, 1)
