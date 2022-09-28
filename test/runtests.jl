@@ -14,7 +14,6 @@ using ESEF
         "esef_errors_followers",
         "esef_mandate_overview",
         "esef_country_availability_bar",
-        "esef_country_availability_map_poster",
         "esef_error_country_heatmap",
     ]
 end

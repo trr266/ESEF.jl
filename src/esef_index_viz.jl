@@ -6,15 +6,183 @@ using CSV
 using DataFrameMacros
 using DataFrames
 using Dates
+using Downloads
+using GeoJSON
+using GeoMakie
+using GeoMakie
+using GeoMakie.GeoJSON
 using HTTP
 using JSON
+using Setfield
 using Statistics
 using URIParser
 using VegaDatasets
 using VegaLite
-using Setfield
 
 trr_266_colors = ["#1b8a8f", "#ffb43b", "#6ecae2", "#944664"] # petrol, yellow, blue, red
+
+function calculate_country_rollup(df)
+    country_rollup = @chain df begin
+        @subset(!ismissing(:country))
+        @groupby(:country)
+        @combine(:report_count = length(:country))
+        @transform(:report_count = coalesce(:report_count, 0))
+        @sort(:report_count; rev=true)
+    end
+    return country_rollup
+end
+
+function get_esef_mandate_df()
+    d_path = joinpath(@__DIR__, "..", "data", "esef_mandate_overview.csv")
+    esef_year_df = @chain d_path CSV.read(DataFrame; normalizenames=true)
+    return esef_year_df
+end
+
+function generate_esef_basemap()
+    url = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/"
+    country = Downloads.download(url * "ne_50m_admin_0_countries.geojson")
+    country_json = JSON.parse(read(country, String))
+
+    tiny_country = Downloads.download(url * "ne_50m_admin_0_tiny_countries.geojson")
+    tiny_country_json = JSON.parse(read(tiny_country, String))
+
+    mandate_df = get_esef_mandate_df()
+
+    malta = [
+        c for c in tiny_country_json["features"] if c["properties"]["ADMIN"] == "Malta"
+    ]
+    europe = [
+        c for c in country_json["features"] if
+        (c["properties"]["ADMIN"] ∈ mandate_df[!, :Country]) &
+        (c["properties"]["ADMIN"] != "Malta")
+    ]
+    country_json["features"] = [malta..., europe...]
+
+    country_geo = GeoJSON.read(JSON.json(country_json))
+    return country_geo
+end
+
+function generate_esef_report_map()
+    background_gray = RGBf(0.85, 0.85, 0.85)
+    fontsize_theme = Theme(; fontsize=20, backgroundcolor=background_gray)
+    set_theme!(fontsize_theme)
+    dest = "+proj=laea"
+    source = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+
+    fig = Figure(; resolution=(1000, 500))
+    gd = fig[1, 1] = GridLayout()
+
+    ga = GeoAxis(
+        gd[1, 1];
+        source=source,
+        dest=dest,
+        lonlims=(-28, 35),
+        latlims=(35, 72),
+        title="ESEF Reports Availability by Country",
+        subtitle="(XBRL Repository)",
+        backgroundcolor=background_gray,
+    )
+
+    eu_geojson = generate_esef_basemap()
+    df, df_error = get_esef_xbrl_filings()
+    country_rollup = calculate_country_rollup(df)
+
+    report_count_vect = map(eu_geojson) do geo
+        report_count = (@chain country_rollup @subset(:country == geo.ADMIN) @select(
+            :report_count
+        ))
+        nrow(report_count) > 0 ? report_count[1, 1] : 0
+    end
+
+    max_reports = maximum(country_rollup[!, :report_count])
+    color_scale_ = range(
+        parse(Colorant, "#ffffff"), parse(Colorant, "#ffb43b"), max_reports + 1
+    )
+    # NOTE: Work around for `ERROR: MethodError: no method matching MultiPolygon(::Point{2, Float32})`
+    for (c, report_count) in zip(eu_geojson, report_count_vect)
+        poly!(
+            ga,
+            GeoMakie.geo2basic(c);
+            strokecolor=RGBf(0.90, 0.90, 0.90),
+            strokewidth=1,
+            color=color_scale_[report_count+1],
+            label="test",
+        )
+    end
+
+    cbar = Colorbar(
+        gd[1, 2];
+        colorrange=(0, max_reports),
+        colormap=color_scale_,
+        label="ESEF Reports (all-time, per country)",
+        height=Relative(0.65),
+    )
+
+    hidedecorations!(ga)
+    hidespines!(ga)
+    colgap!(gd, 1)
+    rowgap!(gd, 1)
+
+    cbar.tellheight = true
+    cbar.width = 50
+
+    return fig
+end
+
+function generate_esef_mandate_map()
+    background_gray = RGBf(0.85, 0.85, 0.85)
+    fontsize_theme = Theme(; fontsize=20, backgroundcolor=background_gray)
+    set_theme!(fontsize_theme)
+    dest = "+proj=laea"
+    source = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+
+    fig = Figure(; resolution=(1000, 500))
+    gd = fig[1, 1] = GridLayout()
+
+    ga = GeoAxis(
+        gd[1, 1];
+        source=source,
+        dest=dest,
+        lonlims=(-28, 35),
+        latlims=(35, 72),
+        title="ESEF Mandate by Country",
+        subtitle="(Based on Issuer's Fiscal Year Start Date)",
+        backgroundcolor=background_gray,
+    )
+
+    eu_geojson = generate_esef_basemap()
+
+    esef_year_df = get_esef_mandate_df()
+
+    mandate_year_vect = map(eu_geojson) do geo
+        mandate_year = (@chain esef_year_df @subset(:Country == geo.ADMIN) @select(
+            :Mandate_Affects_Fiscal_Year_Beginning
+        ))
+        mandate_year[1, 1]
+    end
+
+    color_scale_ = parse.((Colorant,), trr_266_colors)
+    # NOTE: Work around for `ERROR: MethodError: no method matching MultiPolygon(::Point{2, Float32})`
+    for (c, mandate_year) in zip(eu_geojson, mandate_year_vect)
+        poly!(
+            ga,
+            GeoMakie.geo2basic(c);
+            strokecolor=RGBf(0.90, 0.90, 0.90),
+            strokewidth=1,
+            color=color_scale_[mandate_year - 2019],
+            label=string(mandate_year),
+        )
+    end
+
+    axislegend(ga; merge=true)
+
+    hidedecorations!(ga)
+    hidespines!(ga)
+    colgap!(gd, 1)
+    rowgap!(gd, 1)
+
+    return fig
+end
 
 function generate_esef_homepage_viz(; map_output="web")
     # TODO: figure out why entries are not unique...
@@ -84,131 +252,37 @@ function generate_esef_homepage_viz(; map_output="web")
 
     world_geojson = @chain "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json" URI()
 
-    country_rollup = @chain df begin
-        @groupby(:country)
-        @combine(:report_count = length(:country))
-        @transform(:report_count = coalesce(:report_count, 0))
-    end
+    country_rollup = calculate_country_rollup(df)
 
     # jscpd:ignore-start
+    viz["esef_country_availability_map"] = generate_esef_report_map()
 
-    # First is for web, second for poster
-    map_heights = [("web", 300), ("poster", 270)]
+    axis = (
+        width=500,
+        height=250,
+        xlabel="",
+        ylabel="Report Count",
+        title="ESEF Report Availability by Country",
+        subtitle="(XBRL Repository)",
+        xticklabelrotation=pi / 2,
+    )
 
-    for map_height in map_heights
-        map_output = map_height[1]
-        map_height = map_height[2]
-        fg2a = @vlplot(
-            width = 500,
-            height = map_height,
-            title = {
-                text = "ESEF Report Availability by Country", subtitle = "(XBRL Repository)"
-            }
-        )
+    country_ordered = country_rollup[!, :country]
 
-        fg2b = @vlplot(
-            width = 500,
-            height = map_height,
-            mark = {:geoshape, stroke = :white, fill = :lightgray},
-            data = {url = world_geojson, format = {type = :topojson, feature = :countries}},
-            projection = {type = :azimuthalEqualArea, scale = 525, center = [15, 53]},
-        )
-
-        fg2c = @vlplot(
-            width = 500,
-            height = map_height,
-            mark = {:geoshape, stroke = :white},
-            data = {url = world_geojson, format = {type = :topojson, feature = :countries}},
-            transform = [{
-                lookup = "properties.name",
-                from = {
-                    data = (@chain country_rollup @subset(:report_count > 0)),
-                    key = :country,
-                    fields = ["report_count"],
-                },
-            }],
-            projection = {type = :azimuthalEqualArea, scale = 525, center = [15, 53]},
-            fill = {
-                "report_count:q",
-                axis = {title = "Report Count"},
-                scale = {range = ["#ffffff", trr_266_colors[2]]},
-            },
-        )
-
-        fg2 = (fg2a + fg2b + fg2c)
-
-        if map_output == "web"
-            viz["esef_country_availability_map"] = fg2
-        end
-
-        # Make tweaks for poster
-        if map_output == "poster"
-            # Make tweaks for poster
-            fg2 = @set fg2.background = nothing # transparent background
-            fg2 = @set fg2.config = ("view" => ("stroke" => "transparent")) # remove grey border
-            fg2 = @set fg2.layer[2]["encoding"]["fill"]["legend"] = nothing # drop legend
-            fg2 = @set fg2.title = nothing
-
-            viz["esef_country_availability_map_poster"] = fg2
-        end
+    plt = @chain country_rollup begin
+        data(_) *
+        mapping(
+            :country => renamer((OrderedDict(zip(country_ordered, country_ordered)))...),
+            :report_count,
+        ) *
+        visual(BarPlot; color=trr_266_colors[1])
     end
 
-    fg2_bar = @vlplot(
-        {:bar, color = trr_266_colors[1]},
-        width = 500,
-        height = 300,
-        x = {"country:o", title = nothing, sort = "-y"},
-        y = {:report_count, title = "Report Count"},
-        title = {
-            text = "ESEF Report Availability by Country", subtitle = "(XBRL Repository)"
-        },
-    )((@chain country_rollup @subset(:report_count > 0)))
+    fg2_bar = draw(plt; axis)
+
     viz["esef_country_availability_bar"] = fg2_bar
 
-    d_path = joinpath(@__DIR__, "..", "data", "esef_mandate_overview.csv")
-    esef_year_df = @chain d_path CSV.read(DataFrame; normalizenames=true)
-
-    fg3a = @vlplot(
-        width = 500,
-        height = 300,
-        title = {
-            text = "ESEF Mandate by Country",
-            subtitle = "(Based on Issuer's Fiscal Year Start Date)",
-        }
-    )
-
-    fg3b = @vlplot(
-        mark = {:geoshape, stroke = :white, fill = :lightgray},
-        data = {url = world_geojson, format = {type = :topojson, feature = :countries}},
-        projection = {type = :azimuthalEqualArea, scale = 525, center = [15, 53]},
-    )
-
-    fg3c = @vlplot(
-        mark = {:geoshape, stroke = :white},
-        width = 500,
-        height = 300,
-        data = {url = world_geojson, format = {type = :topojson, feature = :countries}},
-        transform = [
-            {
-                lookup = "properties.name",
-                from = {
-                    data = esef_year_df,
-                    key = :Country,
-                    fields = ["Mandate_Affects_Fiscal_Year_Beginning"],
-                },
-            },
-            {filter = "isValid(datum.Mandate_Affects_Fiscal_Year_Beginning)"},
-        ],
-        projection = {type = :azimuthalEqualArea, scale = 525, center = [15, 53]},
-        color = {
-            "Mandate_Affects_Fiscal_Year_Beginning:O",
-            axis = {title = "Mandate Starts"},
-            scale = {range = trr_266_colors},
-        },
-    )
-
-    fg3 = (fg3a + fg3b + fg3c)
-    viz["esef_mandate_overview"] = fg3
+    viz["esef_mandate_overview"] = generate_esef_mandate_map()
 
     # jscpd:ignore-end
 

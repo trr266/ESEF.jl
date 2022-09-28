@@ -70,14 +70,14 @@ end
 function basic_wikidata_preprocessing(df)
     df = @chain df begin
         @transform(:wikidata_uri = :entity["value"])
-        @transform(:company_label = @m :entityLabel["value"])
-        @transform(:isin_id = @m :isin_value["value"])
-        @transform(:country_uri = @m :country["value"])
-        @transform(:country = @m :countryLabel["value"])
-        @transform(:country_alpha_2 = @m :country_alpha_2["value"])
-        @transform(:isin_alpha_2 = @m first(:isin_id, 2))
-        @transform(:twitter_handle = @m :twitter_value["value"])
-        @transform(:lei_id = @m :lei_value["value"])
+        @transform(:company_label = @passmissing :entityLabel["value"])
+        @transform(:isin_id = @passmissing :isin_value["value"])
+        @transform(:country_uri = @passmissing :country["value"])
+        @transform(:country = @passmissing :countryLabel["value"])
+        @transform(:country_alpha_2 = @passmissing :country_alpha_2["value"])
+        @transform(:isin_alpha_2 = @passmissing first(:isin_id, 2))
+        @transform(:twitter_handle = @passmissing :twitter_value["value"])
+        @transform(:lei_id = @passmissing :lei_value["value"])
         @groupby(
             :wikidata_uri,
             :company_label,
