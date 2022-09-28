@@ -91,7 +91,7 @@ function generate_esef_report_map()
         report_count = (@chain country_rollup @subset(:country == geo.ADMIN) @select(
             :report_count
         ))
-        nrow(report_count) > 0 ? report_count[1, 1] : missing
+        nrow(report_count) > 0 ? report_count[1, 1] : 0
     end
 
     max_reports = maximum(country_rollup[!, :report_count])
