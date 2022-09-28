@@ -21,6 +21,17 @@ using VegaLite
 
 trr_266_colors = ["#1b8a8f", "#ffb43b", "#6ecae2", "#944664"] # petrol, yellow, blue, red
 
+function calculate_country_rollup(df)
+    country_rollup = @chain df begin
+        @subset(!ismissing(:country))
+        @groupby(:country)
+        @combine(:report_count = length(:country))
+        @transform(:report_count = coalesce(:report_count, 0))
+        @sort(:report_count; rev=true)
+    end
+    return country_rollup
+end
+
 function get_esef_mandate_df()
     d_path = joinpath(@__DIR__, "..", "data", "esef_mandate_overview.csv")
     esef_year_df = @chain d_path CSV.read(DataFrame; normalizenames=true)
@@ -74,11 +85,7 @@ function generate_esef_report_map()
 
     eu_geojson = generate_esef_basemap()
     df, df_error = get_esef_xbrl_filings()
-    country_rollup = @chain df begin
-        @groupby(:country)
-        @combine(:report_count = length(:country))
-        @transform(:report_count = coalesce(:report_count, 0))
-    end
+    country_rollup = calculate_country_rollup(df)
 
     report_count_vect = map(eu_geojson) do geo
         report_count = (@chain country_rollup @subset(:country == geo.ADMIN) @select(
@@ -250,13 +257,7 @@ function generate_esef_homepage_viz(; map_output="web")
 
     world_geojson = @chain "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json" URI()
 
-    country_rollup = @chain df begin
-        @subset(!ismissing(:country))
-        @groupby(:country)
-        @combine(:report_count = length(:country))
-        @transform(:report_count = coalesce(:report_count, 0))
-        @sort(:report_count; rev=true)
-    end
+    country_rollup = calculate_country_rollup(df)
 
     # jscpd:ignore-start
     viz["esef_country_availability_map"] = generate_esef_report_map()
