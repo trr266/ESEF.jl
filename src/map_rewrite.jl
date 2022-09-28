@@ -8,17 +8,7 @@ using DataFrameMacros
 using ESEF
 using DataFrames
 
-df_wikidata_lei = ESEF.get_lei_companies_wikidata()
-df_wikidata_lei = ESEF.enrich_wikidata_with_twitter_data(df_wikidata_lei)
-
-# TODO: backfill twitter profiles for xbrl entries?
 df, df_error = ESEF.get_esef_xbrl_filings()
-
-df = @chain df begin
-    leftjoin(
-        df_wikidata_lei; on=(:key => :lei_id), matchmissing=:notequal, makeunique=true
-    )
-end
 
 country_rollup = @chain df begin
     @groupby(:country)
@@ -46,8 +36,9 @@ end
 
 
 
-begin
-    fontsize_theme = Theme(fontsize = 20)
+function generate_esef_report_map()
+    background_gray = RGBf(0.85, 0.85, 0.85)
+    fontsize_theme = Theme(fontsize = 20,  backgroundcolor = background_gray)
     set_theme!(fontsize_theme)
     dest = "+proj=laea"
     source = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
@@ -63,6 +54,7 @@ begin
         latlims = (35, 72),
         title="ESEF Reports Availability by Country",
         subtitle = "(XBRL Repository)",
+        backgroundcolor = background_gray,
         )
 
     eu_geojson = generate_esef_basemap(country_rollup)
@@ -88,12 +80,14 @@ begin
     cbar = Colorbar(gd[1,2]; colorrange = (0, max_reports), colormap = color_scale_, label = "ESEF Reports (all-time, per country)", height = Relative(0.65))
 
     hidedecorations!(ga)
-    # hidespines!(ga)
+    hidespines!(ga)
     colgap!(gd, 1)
     rowgap!(gd, 1)
 
     cbar.tellheight = true
     cbar.width = 50
+
+    return fig
 end
 
-fig
+
