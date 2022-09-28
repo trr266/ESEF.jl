@@ -21,6 +21,13 @@ using VegaLite
 
 trr_266_colors = ["#1b8a8f", "#ffb43b", "#6ecae2", "#944664"] # petrol, yellow, blue, red
 
+function get_esef_mandate_df()
+    d_path = joinpath(@__DIR__, "..", "data", "esef_mandate_overview.csv")
+    esef_year_df = @chain d_path CSV.read(DataFrame; normalizenames=true)
+    return esef_year_df
+end
+
+
 function generate_esef_basemap()
     url = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/"
     country = Downloads.download(url * "ne_50m_admin_0_countries.geojson")
@@ -29,16 +36,10 @@ function generate_esef_basemap()
     tiny_country = Downloads.download(url * "ne_50m_admin_0_tiny_countries.geojson")
     tiny_country_json = JSON.parse(read(tiny_country, String))
 
-    df, df_error = get_esef_xbrl_filings()
-    
-    country_rollup = @chain df begin
-        @groupby(:country)
-        @combine(:report_count = length(:country))
-        @transform(:report_count = coalesce(:report_count, 0))
-    end
+    mandate_df = get_esef_mandate_df()
 
     malta = [c for c in tiny_country_json["features"] if c["properties"]["ADMIN"] == "Malta"]
-    europe = [c for c in country_json["features"] if (c["properties"]["ADMIN"] ∈ country_rollup[!, :country]) & (c["properties"]["ADMIN"] != "Malta")]
+    europe = [c for c in country_json["features"] if (c["properties"]["ADMIN"] ∈ mandate_df[!, :Country]) & (c["properties"]["ADMIN"] != "Malta")]
     country_json["features"] = [malta..., europe...]
 
     country_geo = GeoJSON.read(JSON.json(country_json))
@@ -66,7 +67,13 @@ function generate_esef_report_map()
         backgroundcolor = background_gray,
         )
 
-    eu_geojson = generate_esef_basemap(country_rollup)
+    eu_geojson = generate_esef_basemap()
+
+    country_rollup = @chain df begin
+        @groupby(:country)
+        @combine(:report_count = length(:country))
+        @transform(:report_count = coalesce(:report_count, 0))
+    end
 
     report_count_vect = map(eu_geojson) do geo
         report_count = (@chain country_rollup @subset(:country == geo.ADMIN) @select(:report_count))
@@ -120,15 +127,13 @@ function generate_esef_mandate_map()
         backgroundcolor = background_gray,
         )
 
-    eu_geojson = generate_esef_basemap(country_rollup)
+    eu_geojson = generate_esef_basemap()
 
-    d_path = joinpath(@__DIR__, "..", "data", "esef_mandate_overview.csv")
-    esef_year_df = @chain d_path CSV.read(DataFrame; normalizenames=true)
-
+    esef_year_df = get_esef_mandate_df()
 
     mandate_year_vect = map(eu_geojson) do geo
         mandate_year = (@chain esef_year_df @subset(:Country == geo.ADMIN) @select(:Mandate_Affects_Fiscal_Year_Beginning))
-        mandate_year[1, 1] : missing
+        mandate_year[1, 1]
     end
 
 
@@ -139,12 +144,13 @@ function generate_esef_mandate_map()
             strokecolor = RGBf(0.90, 0.90, 0.90),
             strokewidth = 1,
             color= color_scale_[mandate_year - 2019],
-            label="test"
+            label=string(mandate_year)
         )
     end
 
+    axislegend(ga, merge=true)
 
-    cbar = Colorbar(gd[1,2]; colormap = color_scale_, label = "ESEF Reports (all-time, per country)", height = Relative(0.65))
+    # cbar = Colorbar(gd[1,2]; colormap = color_scale_, label = "ESEF Reports (all-time, per country)", height = Relative(0.65))
 
     hidedecorations!(ga)
     hidespines!(ga)
@@ -259,50 +265,7 @@ function generate_esef_homepage_viz(; map_output="web")
 
     viz["esef_country_availability_bar"] = fg2_bar
 
-    d_path = joinpath(@__DIR__, "..", "data", "esef_mandate_overview.csv")
-    esef_year_df = @chain d_path CSV.read(DataFrame; normalizenames=true)
-
-    fg3a = @vlplot(
-        width = 500,
-        height = 300,
-        title = {
-            text = "ESEF Mandate by Country",
-            subtitle = "(Based on Issuer's Fiscal Year Start Date)",
-        }
-    )
-
-    fg3b = @vlplot(
-        mark = {:geoshape, stroke = :white, fill = :lightgray},
-        data = {url = world_geojson, format = {type = :topojson, feature = :countries}},
-        projection = {type = :azimuthalEqualArea, scale = 525, center = [15, 53]},
-    )
-
-    fg3c = @vlplot(
-        mark = {:geoshape, stroke = :white},
-        width = 500,
-        height = 300,
-        data = {url = world_geojson, format = {type = :topojson, feature = :countries}},
-        transform = [
-            {
-                lookup = "properties.name",
-                from = {
-                    data = esef_year_df,
-                    key = :Country,
-                    fields = ["Mandate_Affects_Fiscal_Year_Beginning"],
-                },
-            },
-            {filter = "isValid(datum.Mandate_Affects_Fiscal_Year_Beginning)"},
-        ],
-        projection = {type = :azimuthalEqualArea, scale = 525, center = [15, 53]},
-        color = {
-            "Mandate_Affects_Fiscal_Year_Beginning:O",
-            axis = {title = "Mandate Starts"},
-            scale = {range = trr_266_colors},
-        },
-    )
-
-    fg3 = (fg3a + fg3b + fg3c)
-    viz["esef_mandate_overview"] = fg3
+    viz["esef_mandate_overview"] = generate_esef_mandate_map()
 
     # jscpd:ignore-end
 
