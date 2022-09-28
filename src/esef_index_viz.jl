@@ -99,6 +99,64 @@ function generate_esef_report_map()
     return fig
 end
 
+function generate_esef_mandate_map()
+    background_gray = RGBf(0.85, 0.85, 0.85)
+    fontsize_theme = Theme(fontsize = 20,  backgroundcolor = background_gray)
+    set_theme!(fontsize_theme)
+    dest = "+proj=laea"
+    source = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+
+    fig = Figure(resolution = (1000,500))
+    gd = fig[1, 1] = GridLayout()
+
+    ga = GeoAxis(
+        gd[1, 1];
+        source = source,
+        dest = dest,
+        lonlims=(-28, 35),
+        latlims = (35, 72),
+        title="ESEF Mandate by Country",
+        subtitle = "(Based on Issuer's Fiscal Year Start Date)",
+        backgroundcolor = background_gray,
+        )
+
+    eu_geojson = generate_esef_basemap(country_rollup)
+
+    d_path = joinpath(@__DIR__, "..", "data", "esef_mandate_overview.csv")
+    esef_year_df = @chain d_path CSV.read(DataFrame; normalizenames=true)
+
+
+    mandate_year_vect = map(eu_geojson) do geo
+        mandate_year = (@chain esef_year_df @subset(:Country == geo.ADMIN) @select(:Mandate_Affects_Fiscal_Year_Beginning))
+        mandate_year[1, 1] : missing
+    end
+
+
+    color_scale_ = parse.((Colorant,), trr_266_colors)
+    # NOTE: Work around for `ERROR: MethodError: no method matching MultiPolygon(::Point{2, Float32})`
+    for (c, mandate_year) in zip(eu_geojson, mandate_year_vect)
+        poly!(ga, GeoMakie.geo2basic(c);
+            strokecolor = RGBf(0.90, 0.90, 0.90),
+            strokewidth = 1,
+            color= color_scale_[mandate_year - 2019],
+            label="test"
+        )
+    end
+
+
+    cbar = Colorbar(gd[1,2]; colormap = color_scale_, label = "ESEF Reports (all-time, per country)", height = Relative(0.65))
+
+    hidedecorations!(ga)
+    hidespines!(ga)
+    colgap!(gd, 1)
+    rowgap!(gd, 1)
+
+    cbar.tellheight = true
+    cbar.width = 50
+
+    return fig
+end
+
 function generate_esef_homepage_viz(; map_output="web")
     # TODO: figure out why entries are not unique...
     df_wikidata_lei = get_lei_companies_wikidata()
