@@ -181,9 +181,6 @@ function generate_esef_mandate_map()
     colgap!(gd, 1)
     rowgap!(gd, 1)
 
-    cbar.tellheight = true
-    cbar.width = 50
-
     return fig
 end
 
