@@ -168,24 +168,37 @@ function generate_esef_homepage_viz(; map_output="web")
     world_geojson = @chain "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json" URI()
 
     country_rollup = @chain df begin
+        @subset(!ismissing(:country))
         @groupby(:country)
         @combine(:report_count = length(:country))
         @transform(:report_count = coalesce(:report_count, 0))
+        @sort(:report_count; rev=true)
     end
 
     # jscpd:ignore-start
     viz["esef_country_availability_map"] = generate_esef_report_map()
 
-    fg2_bar = @vlplot(
-        {:bar, color = trr_266_colors[1]},
-        width = 500,
-        height = 300,
-        x = {"country:o", title = nothing, sort = "-y"},
-        y = {:report_count, title = "Report Count"},
-        title = {
-            text = "ESEF Report Availability by Country", subtitle = "(XBRL Repository)"
-        },
-    )((@chain country_rollup @subset(:report_count > 0)))
+
+    axis = (
+        width=500,
+        height=250,
+        xlabel="",
+        ylabel="Report Count",
+        title="ESEF Report Availability by Country",
+        subtitle = "(XBRL Repository)",
+        xticklabelrotation = pi/2,
+    )
+
+    country_ordered = country_rollup[!, :country]
+    
+    plt = @chain country_rollup begin
+        data(_) *
+        mapping(:country => renamer((zip(country_ordered, country_ordered) |> OrderedDict)...), :report_count) *
+        visual(BarPlot; color=trr_266_colors[1])
+    end
+
+    fg2_bar = draw(plt; axis)
+
     viz["esef_country_availability_bar"] = fg2_bar
 
     d_path = joinpath(@__DIR__, "..", "data", "esef_mandate_overview.csv")
