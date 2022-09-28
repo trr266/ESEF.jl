@@ -105,7 +105,7 @@ function generate_esef_report_map()
             GeoMakie.geo2basic(c);
             strokecolor=RGBf(0.90, 0.90, 0.90),
             strokewidth=1,
-            color=color_scale_[report_count],
+            color=color_scale_[report_count+1],
             label="test",
         )
     end
