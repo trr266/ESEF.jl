@@ -73,7 +73,7 @@ function generate_esef_report_map()
     )
 
     eu_geojson = generate_esef_basemap()
-
+    df, df_error = get_esef_xbrl_filings()
     country_rollup = @chain df begin
         @groupby(:country)
         @combine(:report_count = length(:country))
