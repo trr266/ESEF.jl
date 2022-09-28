@@ -6,15 +6,18 @@ using CSV
 using DataFrameMacros
 using DataFrames
 using Dates
+using Downloads
+using GeoJSON
+using GeoMakie
+using GeoMakie
+using GeoMakie.GeoJSON
 using HTTP
 using JSON
+using Setfield
 using Statistics
 using URIParser
 using VegaDatasets
 using VegaLite
-using Setfield
-using GeoMakie
-using GeoJSON
 
 trr_266_colors = ["#1b8a8f", "#ffb43b", "#6ecae2", "#944664"] # petrol, yellow, blue, red
 
@@ -27,11 +30,6 @@ function generate_esef_basemap()
     tiny_country_json = JSON.parse(read(tiny_country, String))
 
     df, df_error = get_esef_xbrl_filings()
-    df = @chain df begin
-        leftjoin(
-            df_wikidata_lei; on=(:key => :lei_id), matchmissing=:notequal, makeunique=true
-        )
-    end
     
     country_rollup = @chain df begin
         @groupby(:country)
