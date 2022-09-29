@@ -74,7 +74,9 @@ function get_esef_xbrl_filings()
 
     # Add in country names
     country_lookup = get_country_codes()
-    country_lookup = @chain country_lookup @subset(@passmissing :region == "Europe"; skipmissing=true)
+    country_lookup = @chain country_lookup @subset(
+        @passmissing :region == "Europe"; skipmissing=true
+    )
 
     df = @chain df begin
         leftjoin(_, country_lookup; on=:country_alpha_2)
