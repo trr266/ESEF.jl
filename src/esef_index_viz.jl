@@ -291,7 +291,7 @@ function generate_esef_homepage_viz(; map_output="web")
     df_error_count = @chain df_error_wide begin
         @groupby(:error_code)
         @combine(:error_count = length(:error_code))
-        @orderby(:error_count)
+        @sort(:error_count)
     end
 
     error_ordered = df_error_count[!, :error_code]
