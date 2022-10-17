@@ -246,8 +246,6 @@ function generate_esef_homepage_viz(; map_output="web")
     fg1 = draw(plt; axis)
     viz["esef_errors_followers"] = fg1
 
-    world110m = dataset("world-110m")
-
     world_geojson = @chain "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json" URI()
 
     country_rollup = calculate_country_rollup(df)
