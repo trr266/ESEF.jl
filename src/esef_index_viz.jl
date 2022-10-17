@@ -360,7 +360,7 @@ function generate_esef_homepage_viz(; map_output="web")
         mapping(
             :country,
             :date,
-            color = :error_count
+            color = :report_count
         ) *
         visual(Heatmap; color=trr_266_colors[2])
     end
