@@ -348,35 +348,35 @@ function generate_esef_homepage_viz(; map_output="web")
         @combine(:report_count = length(:country))
     end
 
-    fg_country_date = @vlplot(
-        :rect,
-        width = 500,
-        height = 500,
-        y = {"country:o", title = nothing},
-        x = {"date:o", title = "Date"},
-        color = {
-            "report_count:q",
-            title = "Report Count",
-            scale = {range = ["#ffffff", trr_266_colors[2]]},
-        },
-        title = "Report Publication by Country and Date"
-    )(
-        df_country_date
-    )
+    # fg_country_date = @vlplot(
+    #     :rect,
+    #     width = 500,
+    #     height = 500,
+    #     y = {"country:o", title = nothing},
+    #     x = {"date:o", title = "Date"},
+    #     color = {
+    #         "report_count:q",
+    #         title = "Report Count",
+    #         scale = {range = ["#ffffff", trr_266_colors[2]]},
+    #     },
+    #     title = "Report Publication by Country and Date"
+    # )(
+    #     df_country_date
+    # )
 
-    fg_date_bar = @vlplot(
-        {:bar, color = trr_266_colors[2]},
-        width = 500,
-        height = 100,
-        y = {"sum(report_count)", title = "Report Count"},
-        x = {"date:o", title = "Date"},
-        title = "Report Publication by Date"
-    )(
-        df_country_date
-    )
+    # fg_date_bar = @vlplot(
+    #     {:bar, color = trr_266_colors[2]},
+    #     width = 500,
+    #     height = 100,
+    #     y = {"sum(report_count)", title = "Report Count"},
+    #     x = {"date:o", title = "Date"},
+    #     title = "Report Publication by Date"
+    # )(
+    #     df_country_date
+    # )
 
-    fg_date_composite = [fg_date_bar; fg_country_date]
-    viz["esef_publication_date_composite"] = fg_date_composite
+    # fg_date_composite = [fg_date_bar; fg_country_date]
+    viz["esef_publication_date_composite"] = fg_error_country_heatmap
 
     return viz
 end
