@@ -4,5 +4,5 @@
     ],
     "runArgs": ["--privileged"],
     "dockerFile": "Dockerfile",
-    "postCreateCommand": "julia -e 'using Pkg; Pkg.activate(\".\"); Pkg.instantiate()'"
+    "onCreateCommand": "julia -e 'using Pkg; Pkg.activate(\".\"); Pkg.instantiate()'"
 }
