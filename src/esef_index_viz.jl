@@ -324,21 +324,25 @@ function generate_esef_homepage_viz(; map_output="web")
         @combine(:error_count = length(:error_code))
     end
 
-    fg_error_country_heatmap = @vlplot(
-        :rect,
-        width = 500,
-        height = 500,
-        x = {"country:o", title = nothing},
-        y = {"error_code:o", title = "Error Code"},
-        color = {
-            :error_count,
-            title = "Error Count",
-            scale = {range = ["#ffffff", trr_266_colors[2]]},
-        },
-        title = "Error Frequency by Country and Type"
-    )(
-        df_error_country
+    axis = (
+        width=500,
+        height=250,
+        xticks=[1, 50:50:500...],
+        xlabel="Country",
+        ylabel="Error Code",
+        title="Error Frequency by Country and Type",
     )
+
+    fg_error_country_heatmap = @chain df_error_country begin
+        data(_) *
+        mapping(
+            :country,
+            :error_code,
+            color = :error_count
+        ) *
+        visual(Heatmap; color=trr_266_colors[2])
+    end
+
     viz["esef_error_country_heatmap"] = fg_error_country_heatmap
 
     df_country_date = @chain df begin
