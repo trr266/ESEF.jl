@@ -297,7 +297,6 @@ function generate_esef_homepage_viz(; map_output="web")
     axis = (
         width=500,
         height=250,
-        xticks=[1, 50:50:500...],
         xlabel="Error Count",
         ylabel="Error Count",
         title="ESEF Error Frequency",
@@ -323,7 +322,6 @@ function generate_esef_homepage_viz(; map_output="web")
     axis = (
         width=500,
         height=250,
-        xticks=[1, 50:50:500...],
         xlabel="Country",
         ylabel="Error Code",
         title="Error Frequency by Country and Type",
@@ -344,26 +342,52 @@ function generate_esef_homepage_viz(; map_output="web")
     df_country_date = @chain df begin
         @groupby(:date, :country)
         @combine(:report_count = length(:country))
+        @sort(:report_count)
     end
 
-    # fg_country_date = @vlplot(
-    #     :rect,
-    #     width = 500,
-    #     height = 500,
-    #     y = {"country:o", title = nothing},
-    #     x = {"date:o", title = "Date"},
-    #     color = {
-    #         "report_count:q",
-    #         title = "Report Count",
-    #         scale = {range = ["#ffffff", trr_266_colors[2]]},
-    #     },
-    #     title = "Report Publication by Country and Date"
-    # )(
-    #     df_country_date
-    # )
+    fig = Figure()
 
-    # fg_date_bar = @vlplot(
-    #     {:bar, color = trr_266_colors[2]},
+    axis = (
+        width=500,
+        height=500,
+        xlabel="Country",
+        ylabel="Date",
+        title="Report Publication by Country and Date",
+    )
+
+    fg_country_date = @chain df_country_date begin
+        data(_) *
+        mapping(
+            :country,
+            :date,
+            color = :error_count
+        ) *
+        visual(Heatmap; color=trr_266_colors[2])
+    end
+    draw!(fig[1, 2], fg_country_date)
+
+
+    axis = (
+        width=500,
+        height=100,
+        xlabel="Country",
+        ylabel="Date",
+        title="Report Publication by Country and Date",
+    )
+
+    fg_date_bar = @chain df_country_date begin
+        data(_) *
+        mapping(
+            :country,
+            :date,
+            color = :error_count
+        ) *
+        visual(BarPlot; color=trr_266_colors[2])
+    end
+    draw!(fig[1, 2], fg_date_bar)
+
+
+
     #     width = 500,
     #     height = 100,
     #     y = {"sum(report_count)", title = "Report Count"},
