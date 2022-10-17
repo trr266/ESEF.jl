@@ -10,8 +10,6 @@ using HTTP
 using JSON
 using Statistics
 using URIParser
-using VegaDatasets
-using VegaLite
 
 function esef_wikidata_mini_analysis()
     df_wikidata_lei = get_lei_companies_wikidata()
