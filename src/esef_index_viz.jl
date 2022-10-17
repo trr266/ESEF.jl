@@ -370,35 +370,24 @@ function generate_esef_homepage_viz(; map_output="web")
     axis = (
         width=500,
         height=100,
-        xlabel="Country",
-        ylabel="Date",
-        title="Report Publication by Country and Date",
+        xlabel="Date",
+        ylabel="Report Count",
+        title="Report Publication by Date",
     )
 
     fg_date_bar = @chain df_country_date begin
+        @groupby(:country)
+        @transform(:report_count = sum(:report_count))
         data(_) *
         mapping(
-            :country,
             :date,
-            color = :error_count
+            :report_count,
         ) *
         visual(BarPlot; color=trr_266_colors[2])
     end
-    draw!(fig[1, 2], fg_date_bar)
+    draw!(fig[1, 1], fg_date_bar)
 
-
-
-    #     width = 500,
-    #     height = 100,
-    #     y = {"sum(report_count)", title = "Report Count"},
-    #     x = {"date:o", title = "Date"},
-    #     title = "Report Publication by Date"
-    # )(
-    #     df_country_date
-    # )
-
-    # fg_date_composite = [fg_date_bar; fg_country_date]
-    viz["esef_publication_date_composite"] = fg_error_country_heatmap
+    viz["esef_publication_date_composite"] = fig
 
     return viz
 end
