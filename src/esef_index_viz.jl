@@ -293,18 +293,30 @@ function generate_esef_homepage_viz(; map_output="web")
     df_error_count = @chain df_error_wide begin
         @groupby(:error_code)
         @combine(:error_count = length(:error_code))
+        @orderby(:error_count)
     end
 
-    fg_error_freq_bar = @vlplot(
-        {:bar, color = trr_266_colors[1]},
-        width = 500,
-        height = 500,
-        y = {"error_code:o", title = "Error Code", sort = "-x"},
-        x = {"error_count", title = "Error Count"},
-        title = {text = "ESEF Error Frequency", subtitle = "(XBRL Repository)"}
-    )(
-        df_error_count
+    error_ordered = df_error_count[!, :error_code]
+
+    axis = (
+        width=500,
+        height=250,
+        xticks=[1, 50:50:500...],
+        xlabel="Error Count",
+        ylabel="Error Count",
+        title="ESEF Error Frequency",
+        subtitle="(XBRL Repository)",
     )
+
+    fg_error_freq_bar = @chain df_error_count begin
+        data(_) *
+        mapping(
+            :error_code => renamer((OrderedDict(zip(error_ordered, error_ordered)))...),
+            :error_count,
+        ) *
+        visual(BarPlot; color=trr_266_colors[1])
+    end
+
     viz["esef_error_type_freq_bar"] = fg_error_freq_bar
 
     df_error_country = @chain df_error_wide begin
