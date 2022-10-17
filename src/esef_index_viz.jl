@@ -10,8 +10,6 @@ using HTTP
 using JSON
 using Statistics
 using URIParser
-using VegaDatasets
-using VegaLite
 using Setfield
 using GeoMakie
 using GeoJSON
