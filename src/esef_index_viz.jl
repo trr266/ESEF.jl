@@ -103,7 +103,7 @@ function generate_esef_report_map()
             GeoMakie.geo2basic(c);
             strokecolor=RGBf(0.90, 0.90, 0.90),
             strokewidth=1,
-            color=color_scale_[report_count+1],
+            color=color_scale_[report_count + 1],
             label="test",
         )
     end
@@ -329,11 +329,7 @@ function generate_esef_homepage_viz(; map_output="web")
 
     fg_error_country_heatmap = @chain df_error_country begin
         data(_) *
-        mapping(
-            :country,
-            :error_code,
-            color = :error_count
-        ) *
+        mapping(:country, :error_code; color=:error_count) *
         visual(Heatmap; color=trr_266_colors[2])
     end
 
@@ -357,15 +353,10 @@ function generate_esef_homepage_viz(; map_output="web")
 
     fg_country_date = @chain df_country_date begin
         data(_) *
-        mapping(
-            :country,
-            :date,
-            color = :report_count
-        ) *
+        mapping(:country, :date; color=:report_count) *
         visual(Heatmap; color=trr_266_colors[2])
     end
     draw!(fig[1, 2], fg_country_date)
-
 
     axis = (
         width=500,
@@ -378,12 +369,7 @@ function generate_esef_homepage_viz(; map_output="web")
     fg_date_bar = @chain df_country_date begin
         @groupby(:country)
         @transform(:report_count = sum(:report_count))
-        data(_) *
-        mapping(
-            :date,
-            :report_count,
-        ) *
-        visual(BarPlot; color=trr_266_colors[2])
+        data(_) * mapping(:date, :report_count) * visual(BarPlot; color=trr_266_colors[2])
     end
     draw!(fig[1, 1], fg_date_bar)
 
