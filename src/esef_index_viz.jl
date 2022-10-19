@@ -332,31 +332,39 @@ function generate_esef_error_country_heatmap()
     df_error_wide = @chain df_error begin
         leftjoin(df; on=:key)
     end
-
+    
     df_error_country = @chain df_error_wide begin
+        @transform(:error_code = truncate_text(:error_code))
         @groupby(:error_code, :country)
         @combine(:error_count = length(:error_code))
+        @sort(-:error_count)
     end
-
+    
     axis = (
-        width=500,
-        height=250,
-        xlabel="Country",
-        ylabel="Error Code",
+        width=900,
+        height=400,
+        ylabel="Country",
+        xlabel="Error Code",
         title="Error Frequency by Country and Type",
+        xticklabelrotation=π/2,
     )
-
+    
     fg_error_country_heatmap = @chain df_error_country begin
         data(_) *
         mapping(
-            :country,
             :error_code,
-            color = :error_count
+            :country,
+            :error_count
         ) *
-        visual(Heatmap; color=trr_266_colors[2])
+        visual(Heatmap; colormap=:thermal) # TODO: Replace with trr color scheme
     end
     
-    return fg_error_country_heatmap
+    fig = Figure()
+    ag = draw!(fig[1,1], fg_error_country_heatmap; axis=axis)
+    colorbar!(fig[1,2], ag)
+    resize_to_layout!(fig)
+
+    return fig
 end
 
 function generate_esef_publication_date_composite()
@@ -421,7 +429,6 @@ function generate_esef_publication_date_composite()
     hidexdecorations!(fig.content[2])
     colorbar!(fig[2,2], ag)
     resize_to_layout!(fig)
-    
 
     return fig
 end
