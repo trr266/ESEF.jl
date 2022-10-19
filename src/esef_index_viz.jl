@@ -357,10 +357,10 @@ function generate_esef_publication_date_composite()
         @sort(:report_count)
     end
 
-    fig = Figure(width=5000, height=5000)
+    fig = Figure(resolution=(5000,5000))
 
     axis = (
-        width=400,
+        width=500,
         height=500,
         xlabel="Country",
         ylabel="Date",
