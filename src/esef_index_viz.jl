@@ -16,8 +16,18 @@ using JSON
 using Setfield
 using Statistics
 using URIParser
+using OrderedCollections
 
 trr_266_colors = ["#1b8a8f", "#ffb43b", "#6ecae2", "#944664"] # petrol, yellow, blue, red
+
+function truncate_text(string)
+    if length(string) > 30
+        return string[1:15] * "..." * string[end-14:end]
+    else
+        return string
+    end
+end
+
 
 function calculate_country_rollup(df)
     country_rollup = @chain df begin
@@ -285,22 +295,25 @@ function generate_esef_error_type_freq_bar()
     end
 
     df_error_count = @chain df_error_wide begin
+        @transform(:error_code = truncate_text(:error_code))
         @groupby(:error_code)
         @combine(:error_count = length(:error_code))
-        @sort(:error_count)
+        @sort(-:error_count)
+        first(15)
     end
-
+    
     error_ordered = df_error_count[!, :error_code]
-
+    
     axis = (
-        width=500,
-        height=250,
+        width=800,
+        height=300,
         xlabel="Error Count",
-        ylabel="Error Count",
-        title="ESEF Error Frequency",
+        ylabel="Error Type",
+        title="ESEF Error Frequency (Top 15)",
         subtitle="(XBRL Repository)",
+        xticklabelrotation=-π/2,
     )
-
+    
     fg_error_freq_bar = @chain df_error_count begin
         data(_) *
         mapping(
@@ -309,8 +322,8 @@ function generate_esef_error_type_freq_bar()
         ) *
         visual(BarPlot; color=trr_266_colors[1])
     end
-
-    return fg_error_freq_bar
+    
+    return draw(fg_error_freq_bar; axis=axis)
 end
 
 function generate_esef_error_country_heatmap()
