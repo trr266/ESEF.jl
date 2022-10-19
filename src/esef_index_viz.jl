@@ -347,8 +347,8 @@ function generate_esef_error_country_heatmap()
 end
 
 function generate_esef_publication_date_composite()
-    df, df_error = get_esef_xbrl_filings()
-
+    df, df_error = ESEF.get_esef_xbrl_filings()
+    
     df_country_date = @chain df begin
         @transform(:month = string(floor(Date(:date), Month)))
         @groupby(:month, :country)
@@ -356,10 +356,10 @@ function generate_esef_publication_date_composite()
         @subset(!ismissing(:country))
         @sort(:report_count)
     end
-
-    fig = Figure(resolution=(5000,5000))
-
-    axis = (
+    
+    fig = Figure()
+    
+    axis1 = (
         width=500,
         height=500,
         xlabel="Country",
@@ -367,7 +367,7 @@ function generate_esef_publication_date_composite()
         title="Report Publication by Country and Date",
         xticklabelrotation=π/2,
     )
-
+    
     fg_country_date = @chain df_country_date begin
         data(_) *
         mapping(
@@ -375,12 +375,13 @@ function generate_esef_publication_date_composite()
             :country,
             :report_count
         ) *
-        visual(Heatmap; color=trr_266_colors[2])
+        visual(Heatmap; colormap=:thermal) # TODO: Replace with trr color scheme
     end
-    draw!(fig[2, 1], fg_country_date; axis=axis)
-
-
-    axis = (
+    
+    ag = draw!(fig[2, 1], fg_country_date; axis=axis1)
+    
+    
+    axis2 = (
         width=500,
         height=100,
         xlabel="Date",
@@ -388,7 +389,7 @@ function generate_esef_publication_date_composite()
         title="Report Publication by Date",
         xticklabelrotation=π/2,
     )
-
+    
     fg_date_bar = @chain df_country_date begin
         @groupby(:month)
         @combine(:report_count = sum(:report_count))
@@ -400,8 +401,14 @@ function generate_esef_publication_date_composite()
         ) *
         visual(BarPlot; color=trr_266_colors[2])
     end
-
-    draw!(fig[1, 1], fg_date_bar; axis=axis)
+    
+    draw!(fig[1, 1], fg_date_bar; axis=axis2)
+    
+    linkxaxes!(fig.content...)
+    hidexdecorations!(fig.content[2])
+    colorbar!(fig[2,2], ag)
+    resize_to_layout!(fig)
+    
 
     return fig
 end
