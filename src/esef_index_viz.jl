@@ -350,31 +350,34 @@ function generate_esef_publication_date_composite()
     df, df_error = get_esef_xbrl_filings()
 
     df_country_date = @chain df begin
-        @groupby(:date, :country)
+        @transform(:month = string(floor(Date(:date), Month)))
+        @groupby(:month, :country)
         @combine(:report_count = length(:country))
+        @subset(!ismissing(:country))
         @sort(:report_count)
     end
 
-    fig = Figure()
+    fig = Figure(width=5000, height=5000)
 
     axis = (
-        width=500,
+        width=400,
         height=500,
         xlabel="Country",
         ylabel="Date",
         title="Report Publication by Country and Date",
+        xticklabelrotation=π/2,
     )
 
     fg_country_date = @chain df_country_date begin
         data(_) *
         mapping(
+            :month,
             :country,
-            :date,
-            color = :report_count
+            :report_count
         ) *
         visual(Heatmap; color=trr_266_colors[2])
     end
-    draw!(fig[1, 2], fg_country_date)
+    draw!(fig[2, 1], fg_country_date; axis=axis)
 
 
     axis = (
@@ -383,19 +386,24 @@ function generate_esef_publication_date_composite()
         xlabel="Date",
         ylabel="Report Count",
         title="Report Publication by Date",
+        xticklabelrotation=π/2,
     )
 
     fg_date_bar = @chain df_country_date begin
-        @groupby(:country)
-        @transform(:report_count = sum(:report_count))
+        @groupby(:month)
+        @combine(:report_count = sum(:report_count))
+        
         data(_) *
         mapping(
-            :date,
+            :month,
             :report_count,
         ) *
         visual(BarPlot; color=trr_266_colors[2])
     end
-    draw!(fig[1, 1], fg_date_bar)
+
+    draw!(fig[1, 1], fg_date_bar; axis=axis)
+
+    return fig
 end
 
 function generate_esef_homepage_viz()
