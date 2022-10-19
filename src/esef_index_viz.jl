@@ -398,7 +398,7 @@ function generate_esef_publication_date_composite()
     draw!(fig[1, 1], fg_date_bar)
 end
 
-function generate_esef_homepage_viz(; map_output="web")
+function generate_esef_homepage_viz()
     viz = Dict(
         "esef_error_hist" => generate_esef_error_hist(),
         "esef_country_availability_map" => generate_esef_report_map(),
