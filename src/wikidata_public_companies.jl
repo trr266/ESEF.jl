@@ -139,7 +139,7 @@ function get_non_lei_isin_companies_wikidata()
     return df
 end
 
-function get_lei_companies_wikidata()
+@memoize function get_lei_companies_wikidata()
     # TODO: figure out why entries are not unique...
     # TODO: swap this out for artifacts https://pkgdocs.julialang.org/v1/creating-packages/=
     q_path = joinpath(@__DIR__, "..", "queries", "wikidata_lei_entities.sparql")
