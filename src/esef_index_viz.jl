@@ -419,14 +419,14 @@ end
 
 function generate_esef_homepage_viz()
     viz = Dict(
-        :esef_error_hist => generate_esef_error_hist(),
+        :esef_country_availability_bar => generate_esef_country_availability_bar(),
         :esef_country_availability_map => generate_esef_report_map(),
+        :esef_error_country_heatmap => generate_esef_error_country_heatmap(),
+        :esef_error_hist => generate_esef_error_hist(),
         :esef_error_type_freq_bar => generate_esef_error_type_freq_bar(),
-        :esef_publication_date_composite => generate_esef_publication_date_composite(),
         :esef_errors_followers => generate_esef_errors_followers(),
         :esef_mandate_overview => generate_esef_mandate_map(),
-        :esef_country_availability_bar => generate_esef_country_availability_bar(),
-        :esef_error_country_heatmap => generate_esef_error_country_heatmap(),
+        :esef_publication_date_composite => generate_esef_publication_date_composite(),
     )
 
     return viz
