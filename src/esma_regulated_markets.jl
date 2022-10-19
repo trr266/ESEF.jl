@@ -4,7 +4,6 @@ using JSON
 using DataFrameMacros
 using HTTP
 using YAML
-using OrderedCollections
 
 function get_regulated_markets_esma()
     reg_market_query = "https://registers.esma.europa.eu/solr/esma_registers_upreg/select?q=%7B!join+from%3Did+to%3D_root_%7Dae_entityTypeCode%3AMIR&fq=(type_s%3Aparent)&rows=1000&wt=json&indent=true"
