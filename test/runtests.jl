@@ -3,7 +3,7 @@ using ESEF
 
 @testset "ESEF.jl" begin
     @test 80 == 80
-    plots = ESEF.generate_esef_homepage_viz(; map_output = "web")
+    plots = ESEF.generate_esef_homepage_viz()
 
     # Check all plots generated
     @test [keys(plots)...] == [
