@@ -22,12 +22,11 @@ trr_266_colors = ["#1b8a8f", "#ffb43b", "#6ecae2", "#944664"] # petrol, yellow, 
 
 function truncate_text(string)
     if length(string) > 30
-        return string[1:15] * "..." * string[end-14:end]
+        return string[1:15] * "..." * string[(end - 14):end]
     else
         return string
     end
 end
-
 
 function calculate_country_rollup(df)
     country_rollup = @chain df begin
@@ -113,7 +112,7 @@ function generate_esef_report_map()
             GeoMakie.geo2basic(c);
             strokecolor=RGBf(0.90, 0.90, 0.90),
             strokewidth=1,
-            color=color_scale_[report_count+1],
+            color=color_scale_[report_count + 1],
             label="test",
         )
     end
@@ -200,7 +199,7 @@ function generate_esef_error_hist()
         @combine(:error_free_report_pct = round(mean(:error_free_report) * 100; digits=0))
         _[1, :error_free_report_pct]
     end
-    
+
     axis = (
         width=500,
         height=250,
@@ -216,7 +215,7 @@ function generate_esef_error_hist()
         histogram(; bins=range(1, 500; length=50)) *
         visual(; color=trr_266_colors[1])
     end
-    
+
     return draw(plt; axis)
 end
 
@@ -228,13 +227,12 @@ function generate_esef_errors_followers()
     # TODO: backfill twitter profiles for xbrl entries?
     df, df_error = get_esef_xbrl_filings()
 
-
     df = @chain df begin
         leftjoin(
             df_wikidata_lei; on=(:key => :lei_id), matchmissing=:notequal, makeunique=true
         )
     end
-    
+
     axis = (
         width=500,
         height=500,
@@ -255,7 +253,7 @@ function generate_esef_errors_followers()
         (linear() + visual(Scatter; color=trr_266_colors[1]))
     end
 
-   return draw(plt; axis)
+    return draw(plt; axis)
 end
 
 function generate_esef_country_availability_bar()
@@ -301,9 +299,9 @@ function generate_esef_error_type_freq_bar()
         @sort(-:error_count)
         first(15)
     end
-    
+
     error_ordered = df_error_count[!, :error_code]
-    
+
     axis = (
         width=800,
         height=300,
@@ -311,9 +309,9 @@ function generate_esef_error_type_freq_bar()
         ylabel="Error Type",
         title="ESEF Error Frequency (Top 15)",
         subtitle="(XBRL Repository)",
-        xticklabelrotation=-π/2,
+        xticklabelrotation=-π / 2,
     )
-    
+
     fg_error_freq_bar = @chain df_error_count begin
         data(_) *
         mapping(
@@ -322,7 +320,7 @@ function generate_esef_error_type_freq_bar()
         ) *
         visual(BarPlot; color=trr_266_colors[1])
     end
-    
+
     return draw(fg_error_freq_bar; axis=axis)
 end
 
@@ -332,36 +330,32 @@ function generate_esef_error_country_heatmap()
     df_error_wide = @chain df_error begin
         leftjoin(df; on=:key)
     end
-    
+
     df_error_country = @chain df_error_wide begin
         @transform(:error_code = truncate_text(:error_code))
         @groupby(:error_code, :country)
         @combine(:error_count = length(:error_code))
         @sort(-:error_count)
     end
-    
+
     axis = (
         width=900,
         height=400,
         ylabel="Country",
         xlabel="Error Code",
         title="Error Frequency by Country and Type",
-        xticklabelrotation=π/2,
+        xticklabelrotation=π / 2,
     )
-    
+
     fg_error_country_heatmap = @chain df_error_country begin
         data(_) *
-        mapping(
-            :error_code,
-            :country,
-            :error_count
-        ) *
+        mapping(:error_code, :country, :error_count) *
         visual(Heatmap; colormap=:thermal) # TODO: Replace with trr color scheme
     end
-    
+
     fig = Figure()
-    ag = draw!(fig[1,1], fg_error_country_heatmap; axis=axis)
-    colorbar!(fig[1,2], ag)
+    ag = draw!(fig[1, 1], fg_error_country_heatmap; axis=axis)
+    colorbar!(fig[1, 2], ag)
     resize_to_layout!(fig)
 
     return fig
@@ -369,7 +363,7 @@ end
 
 function generate_esef_publication_date_composite()
     df, df_error = ESEF.get_esef_xbrl_filings()
-    
+
     df_country_date = @chain df begin
         @transform(:month = string(floor(Date(:date), Month)))
         @groupby(:month, :country)
@@ -377,57 +371,47 @@ function generate_esef_publication_date_composite()
         @subset(!ismissing(:country))
         @sort(:report_count)
     end
-    
+
     fig = Figure()
-    
+
     axis1 = (
         width=500,
         height=500,
         xlabel="Country",
         ylabel="Date",
         title="Report Publication by Country and Date",
-        xticklabelrotation=π/2,
+        xticklabelrotation=π / 2,
     )
-    
+
     fg_country_date = @chain df_country_date begin
         data(_) *
-        mapping(
-            :month,
-            :country,
-            :report_count
-        ) *
+        mapping(:month, :country, :report_count) *
         visual(Heatmap; colormap=:thermal) # TODO: Replace with trr color scheme
     end
-    
+
     ag = draw!(fig[2, 1], fg_country_date; axis=axis1)
-    
-    
+
     axis2 = (
         width=500,
         height=100,
         xlabel="Date",
         ylabel="Report Count",
         title="Report Publication by Date",
-        xticklabelrotation=π/2,
+        xticklabelrotation=π / 2,
     )
-    
+
     fg_date_bar = @chain df_country_date begin
         @groupby(:month)
         @combine(:report_count = sum(:report_count))
-        
-        data(_) *
-        mapping(
-            :month,
-            :report_count,
-        ) *
-        visual(BarPlot; color=trr_266_colors[2])
+
+        data(_) * mapping(:month, :report_count) * visual(BarPlot; color=trr_266_colors[2])
     end
-    
+
     draw!(fig[1, 1], fg_date_bar; axis=axis2)
-    
+
     linkxaxes!(fig.content...)
     hidexdecorations!(fig.content[2])
-    colorbar!(fig[2,2], ag)
+    colorbar!(fig[2, 2], ag)
     resize_to_layout!(fig)
 
     return fig
