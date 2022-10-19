@@ -182,28 +182,15 @@ function generate_esef_mandate_map()
     return fig
 end
 
-function generate_esef_homepage_viz(; map_output="web")
-    # TODO: figure out why entries are not unique...
-    df_wikidata_lei = get_lei_companies_wikidata()
-    df_wikidata_lei = enrich_wikidata_with_twitter_data(df_wikidata_lei)
-
-    # TODO: backfill twitter profiles for xbrl entries?
+function generate_esef_error_hist()
     df, df_error = get_esef_xbrl_filings()
-
-    viz = Dict()
-
-    df = @chain df begin
-        leftjoin(
-            df_wikidata_lei; on=(:key => :lei_id), matchmissing=:notequal, makeunique=true
-        )
-    end
 
     pct_error_free = @chain df begin
         @transform(:error_free_report = :error_count == 0)
         @combine(:error_free_report_pct = round(mean(:error_free_report) * 100; digits=0))
         _[1, :error_free_report_pct]
     end
-
+    
     axis = (
         width=500,
         height=250,
@@ -219,10 +206,25 @@ function generate_esef_homepage_viz(; map_output="web")
         histogram(; bins=range(1, 500; length=50)) *
         visual(; color=trr_266_colors[1])
     end
+    
+    return draw(plt; axis)
+end
 
-    fg1 = draw(plt; axis)
-    viz["esef_error_hist"] = fg1
+function generate_esef_errors_followers()
+    # TODO: figure out why entries are not unique...
+    df_wikidata_lei = get_lei_companies_wikidata()
+    df_wikidata_lei = enrich_wikidata_with_twitter_data(df_wikidata_lei)
 
+    # TODO: backfill twitter profiles for xbrl entries?
+    df, df_error = get_esef_xbrl_filings()
+
+
+    df = @chain df begin
+        leftjoin(
+            df_wikidata_lei; on=(:key => :lei_id), matchmissing=:notequal, makeunique=true
+        )
+    end
+    
     axis = (
         width=500,
         height=500,
@@ -243,15 +245,13 @@ function generate_esef_homepage_viz(; map_output="web")
         (linear() + visual(Scatter; color=trr_266_colors[1]))
     end
 
-    fg1 = draw(plt; axis)
-    viz["esef_errors_followers"] = fg1
+   return draw(plt; axis)
+end
 
-    world_geojson = @chain "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json" URI()
+function generate_esef_country_availability_bar()
+    df, df_error = get_esef_xbrl_filings()
 
     country_rollup = calculate_country_rollup(df)
-
-    # jscpd:ignore-start
-    viz["esef_country_availability_map"] = generate_esef_report_map()
 
     axis = (
         width=500,
@@ -274,13 +274,11 @@ function generate_esef_homepage_viz(; map_output="web")
         visual(BarPlot; color=trr_266_colors[1])
     end
 
-    fg2_bar = draw(plt; axis)
+    return draw(plt; axis)
+end
 
-    viz["esef_country_availability_bar"] = fg2_bar
-
-    viz["esef_mandate_overview"] = generate_esef_mandate_map()
-
-    # jscpd:ignore-end
+function generate_esef_error_type_freq_bar()
+    df, df_error = get_esef_xbrl_filings()
 
     df_error_wide = @chain df_error begin
         leftjoin(df; on=:key)
@@ -312,7 +310,15 @@ function generate_esef_homepage_viz(; map_output="web")
         visual(BarPlot; color=trr_266_colors[1])
     end
 
-    viz["esef_error_type_freq_bar"] = fg_error_freq_bar
+    return fg_error_freq_bar
+end
+
+function generate_esef_error_country_heatmap()
+    df, df_error = get_esef_xbrl_filings()
+
+    df_error_wide = @chain df_error begin
+        leftjoin(df; on=:key)
+    end
 
     df_error_country = @chain df_error_wide begin
         @groupby(:error_code, :country)
@@ -336,8 +342,12 @@ function generate_esef_homepage_viz(; map_output="web")
         ) *
         visual(Heatmap; color=trr_266_colors[2])
     end
+    
+    return fg_error_country_heatmap
+end
 
-    viz["esef_error_country_heatmap"] = fg_error_country_heatmap
+function generate_esef_publication_date_composite()
+    df, df_error = get_esef_xbrl_filings()
 
     df_country_date = @chain df begin
         @groupby(:date, :country)
@@ -386,8 +396,19 @@ function generate_esef_homepage_viz(; map_output="web")
         visual(BarPlot; color=trr_266_colors[2])
     end
     draw!(fig[1, 1], fg_date_bar)
+end
 
-    viz["esef_publication_date_composite"] = fig
+function generate_esef_homepage_viz(; map_output="web")
+    viz = Dict(
+        "esef_error_hist" => generate_esef_error_hist(),
+        "esef_country_availability_map" => generate_esef_report_map(),
+        "esef_error_type_freq_bar" => generate_esef_error_type_freq_bar(),
+        "esef_publication_date_composite" => generate_esef_publication_date_composite(),
+        "esef_errors_followers" => generate_esef_errors_followers(),
+        "esef_mandate_overview" => generate_esef_mandate_map(),
+        "esef_country_availability_bar" => generate_esef_country_availability_bar(),
+        "esef_error_country_heatmap" => generate_esef_error_country_heatmap(),
+    )
 
     return viz
 end
