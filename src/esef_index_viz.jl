@@ -16,7 +16,6 @@ using JSON
 using Setfield
 using Statistics
 using URIParser
-using Memoization
 
 trr_266_colors = ["#1b8a8f", "#ffb43b", "#6ecae2", "#944664"] # petrol, yellow, blue, red
 

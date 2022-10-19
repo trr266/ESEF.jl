@@ -4,6 +4,7 @@ using DataFrames
 using DataFrameMacros
 using Chain
 using Mustache
+using Memoization
 
 function enrich_wikidata_with_twitter_data(df_wikidata)
     tw_lookup = DataFrame(:qid => [], :twitter_user => [])

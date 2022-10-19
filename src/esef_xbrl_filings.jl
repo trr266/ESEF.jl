@@ -4,6 +4,7 @@ using DataFrames
 using DataFrameMacros
 using CSV
 using JSON
+using Memoization
 
 # TODO: Extract XBRL facts from items where "xbrl-json" key is populated.
 # 2594003JTXPYO8NOG018/2020-12-31/ESEF/PL/0
