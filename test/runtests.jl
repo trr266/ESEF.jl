@@ -1,7 +1,7 @@
 using Test
 using ESEF
 
-@testset "ESEF.jl" begin
+@testset "ESEF.jl Visualizations" begin
     plots = ESEF.generate_esef_homepage_viz()
 
     # Check all plots generated
@@ -15,4 +15,8 @@ using ESEF
         :esef_mandate_overview,
         :esef_publication_date_composite,
     ])
+end
+
+@testset "oxigraph db load" begin
+    ESEF.serve_oxigraph()
 end
