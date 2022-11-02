@@ -103,7 +103,7 @@ function generate_esef_report_map()
 
     max_reports = maximum(country_rollup[!, :report_count])
     color_scale_ = range(
-        parse(Colorant, "#ffffff"), parse(Colorant, "#ffb43b"), max_reports + 1
+        parse(Colorant, "#ffffff"), parse(Colorant, trr_266_colors[2]), max_reports + 1
     )
     # NOTE: Work around for `ERROR: MethodError: no method matching MultiPolygon(::Point{2, Float32})`
     for (c, report_count) in zip(eu_geojson, report_count_vect)
@@ -347,22 +347,27 @@ function generate_esef_error_country_heatmap()
         xticklabelrotation=π / 2,
     )
 
+    max_errors = maximum(df_error_country[!, :error_count])
+    color_scale_ = range(
+        parse(Colorant, "#DBDBDB"), parse(Colorant, trr_266_colors[2]), max_errors + 1
+    )
+
     fg_error_country_heatmap = @chain df_error_country begin
         data(_) *
         mapping(:error_code, :country, :error_count) *
-        visual(Heatmap; colormap=:thermal) # TODO: Replace with trr color scheme
+        visual(Heatmap; colormap=color_scale_) # TODO: Replace with trr color scheme
     end
 
     fig = Figure()
     ag = draw!(fig[1, 1], fg_error_country_heatmap; axis=axis)
-    colorbar!(fig[1, 2], ag)
+    colorbar!(fig[1, 2], ag; label="Error Count")
     resize_to_layout!(fig)
 
     return fig
 end
 
 function generate_esef_publication_date_composite()
-    df, df_error = ESEF.get_esef_xbrl_filings()
+    df, df_error = get_esef_xbrl_filings()
 
     df_country_date = @chain df begin
         @transform(:month = string(floor(Date(:date), Month)))
@@ -383,10 +388,15 @@ function generate_esef_publication_date_composite()
         xticklabelrotation=π / 2,
     )
 
+    max_reports = maximum(df_country_date[!, :report_count])
+    color_scale_ = range(
+        parse(Colorant, "#DBDBDB"), parse(Colorant, trr_266_colors[2]), max_reports + 1
+    )
+
     fg_country_date = @chain df_country_date begin
         data(_) *
         mapping(:month, :country, :report_count) *
-        visual(Heatmap; colormap=:thermal) # TODO: Replace with trr color scheme
+        visual(Heatmap; colormap=color_scale_) # TODO: Replace with trr color scheme
     end
 
     ag = draw!(fig[2, 1], fg_country_date; axis=axis1)
@@ -411,7 +421,7 @@ function generate_esef_publication_date_composite()
 
     linkxaxes!(fig.content...)
     hidexdecorations!(fig.content[2])
-    colorbar!(fig[2, 2], ag)
+    colorbar!(fig[2, 2], ag; label = "Report Count")
     resize_to_layout!(fig)
 
     return fig

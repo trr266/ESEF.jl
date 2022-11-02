@@ -8,3 +8,5 @@ qlever
 *.arrow
 *.csv
 .vscode/
+*.png
+*.svg
