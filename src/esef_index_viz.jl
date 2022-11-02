@@ -220,6 +220,10 @@ function generate_esef_error_hist()
 end
 
 function generate_esef_errors_followers()
+    if "TWITTER_BEARER_TOKEN" ∉ keys(ENV)
+        return nothing
+    end
+
     # TODO: figure out why entries are not unique...
     df_wikidata_lei = get_lei_companies_wikidata()
     df_wikidata_lei = enrich_wikidata_with_twitter_data(df_wikidata_lei)
