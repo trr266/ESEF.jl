@@ -355,7 +355,7 @@ function generate_esef_error_country_heatmap()
     fg_error_country_heatmap = @chain df_error_country begin
         data(_) *
         mapping(:error_code, :country, :error_count) *
-        visual(Heatmap; colormap=color_scale_) # TODO: Replace with trr color scheme
+        visual(Heatmap; colormap=color_scale_)
     end
 
     fig = Figure()
@@ -396,7 +396,7 @@ function generate_esef_publication_date_composite()
     fg_country_date = @chain df_country_date begin
         data(_) *
         mapping(:month, :country, :report_count) *
-        visual(Heatmap; colormap=color_scale_) # TODO: Replace with trr color scheme
+        visual(Heatmap; colormap=color_scale_)
     end
 
     ag = draw!(fig[2, 1], fg_country_date; axis=axis1)
