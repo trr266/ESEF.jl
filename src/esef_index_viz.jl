@@ -425,7 +425,7 @@ function generate_esef_publication_date_composite()
 
     linkxaxes!(fig.content...)
     hidexdecorations!(fig.content[2])
-    colorbar!(fig[2, 2], ag; label = "Report Count")
+    colorbar!(fig[2, 2], ag; label="Report Count")
     resize_to_layout!(fig)
 
     return fig
