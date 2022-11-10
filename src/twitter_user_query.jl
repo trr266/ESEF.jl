@@ -11,15 +11,14 @@ function query_twitter_user_profiles_api_call(twitter_handles)
         "https://api.twitter.com/2/users/by?usernames=$(twitter_handles_csv_chunk)&user.fields=public_metrics",
         headers,
     )
-    r
 
     d = JSON.parse(String(r.body))
 
     df = DataFrame()
 
     for r in d["data"]
-        df1 = DataFrame(r)
-        append!(df, df1; cols=:union)
+        df_ = DataFrame(r)
+        append!(df, df_; cols=:union)
     end
 
     return df

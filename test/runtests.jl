@@ -20,3 +20,7 @@ end
 @testset "oxigraph db load" begin
     ESEF.serve_oxigraph()
 end
+
+@testset "LEI query" begin
+    ESEF.get_lei_names("213800AAFUV5PKGQU848") == ("TYMAN PLC", "LUPUS CAPITAL PLC")
+end

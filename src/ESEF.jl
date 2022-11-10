@@ -2,6 +2,7 @@ module ESEF
 
 import Base: @invokelatest
 
+include("lei_query.jl")
 include("iso_country_codes.jl")
 include("wikidata_public_companies.jl")
 include("twitter_user_query.jl")
