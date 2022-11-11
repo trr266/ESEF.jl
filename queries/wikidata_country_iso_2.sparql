@@ -1,0 +1,7 @@
+SELECT DISTINCT ?country ?country_alpha_2 WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+  {
+      ?country p:P297 ?iso_two_letter .
+      ?iso_two_letter ps:P297 ?country_alpha_2 .
+  }
+}
