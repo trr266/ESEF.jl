@@ -137,8 +137,40 @@ function import_missing_leis_to_wikidata(leis)
     end
 end
 
+function compose_merge_statement(wd_entity_vector)
+    qs_statements = []
+    for merge_ in wd_entity_vector[2:end]
+        push!(qs_statements, "MERGE\t$(wd_entity_vector[1])\t$(merge_)")
+    end
+
+    return qs_statements
+end
+
+
 # TODO: Write tests
 # leis = df[:, :key]
 
 # import_missing_leis_to_wikidata(leis)
-@chain df @subset(:lei_value ∈ leis) _[findall(nonunique(_, :lei_value)), :] CSV.write("test7.csv", _)
+dupe_leis = @chain df begin
+    _[findall(nonunique(_, :lei_value)), :lei_value]
+end
+
+function merge_duplicate_wikidata_on_leis()
+    df = get_full_wikidata_leis()
+
+    dupe_leis = @chain df begin
+        _[findall(nonunique(_, :lei_value)), :lei_value]
+    end
+    
+    qs_statements_str = @chain df begin
+        @subset(:lei_value ∈ dupe_leis)
+        @transform(:entity = replace(:entity, "http://www.wikidata.org/entity/" => ""))
+        @groupby(:lei_value)
+        @combine(:merge_statement = compose_merge_statement(:entity))
+        join(_[:, :merge_statement], "\n")
+    end
+    
+    open("quick_statement.txt", "w") do f
+        write(f, qs_statements_str)
+    end    
+end

@@ -24,3 +24,8 @@ end
 @testset "LEI query" begin
     ESEF.get_lei_names("213800AAFUV5PKGQU848") == ("TYMAN PLC", "LUPUS CAPITAL PLC")
 end
+
+
+@testset "Quick Statement: Merge" begin
+    @test ESEF.compose_merge_statement(["Q1", "Q2", "Q3"]) == ["MERGE\tQ1\tQ2", "MERGE\tQ1\tQ3"]
+end
