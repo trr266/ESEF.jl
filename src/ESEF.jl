@@ -12,5 +12,6 @@ include("esef_wikidata_exploration.jl")
 include("esef_xbrl_filings.jl")
 include("esma_regulated_markets.jl")
 include("oxigraph_server.jl")
+include("esef_xml_parse.jl")
 
 end
