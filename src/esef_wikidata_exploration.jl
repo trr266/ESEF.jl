@@ -44,11 +44,11 @@ function esef_wikidata_mini_analysis()
 end
 
 
-df_1_ = @chain df_1 begin
-    unique()
-    @transform(@astable begin
-    :legal_name, :other_name = get_lei_names(:key)
-    end)
-end
+# df_1_ = @chain df_1 begin
+#     unique()
+#     @transform(@astable begin
+#     :legal_name, :other_name = get_lei_names(:key)
+#     end)
+# end
 
-CSV.write("test.csv", df_1_)
+# CSV.write("test.csv", df_1_)
