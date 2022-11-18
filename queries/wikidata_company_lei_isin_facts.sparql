@@ -10,7 +10,7 @@ WHERE {
        ?sub p:P31 ?statement0 . # Entities which are instances of businesses or its subclasses
        ?statement0 (ps:P31/(wdt:P279*)) wd:Q4830453 .
        } UNION {
-       ?sub wdt:P31 wd:Q891723. # Facts associated with public companies
+       ?sub wdt:P31 wd:Q891723 . # Facts associated with public companies
        } UNION {
        ?sub p:P1278 ?legal_entity_prop . # Facts associated with LEI
        } UNION {
