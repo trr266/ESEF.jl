@@ -141,9 +141,9 @@ function export_profit_table()
     return df_profit
 end
 
-function process_xbrl_filings()
+function serve_esef_data()
     if !(isfile("df_wikidata_rdf.arrow") & isfile("df_esef_rdf.arrow"))
-        df, df_error = ESEF.get_esef_xbrl_filings()
+        df, df_error = get_esef_xbrl_filings()
 
         df = @chain df begin
             @subset(:xbrl_json_path != nothing)
@@ -226,6 +226,12 @@ function process_xbrl_filings()
     end
 
     oxigraph_process = serve_oxigraph(; nt_file_path="oxigraph_rdf.nt", keep_open=true)
+
+    return oxigraph_process
+end
+
+function process_xbrl_filings()
+    oxigraph_process = serve_esef_data()
 
     # Rollup of all concepts available from ESEF data using XBRL's filings API
     df_concepts = export_concept_count_table()
