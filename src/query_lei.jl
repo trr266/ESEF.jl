@@ -146,14 +146,13 @@ function compose_merge_statement(wd_entity_vector)
     return qs_statements
 end
 
+# # TODO: Write tests
+# # leis = df[:, :key]
 
-# TODO: Write tests
-# leis = df[:, :key]
-
-# import_missing_leis_to_wikidata(leis)
-dupe_leis = @chain df begin
-    _[findall(nonunique(_, :lei_value)), :lei_value]
-end
+# # import_missing_leis_to_wikidata(leis)
+# dupe_leis = @chain df begin
+#     _[findall(nonunique(_, :lei_value)), :lei_value]
+# end
 
 function merge_duplicate_wikidata_on_leis()
     df = get_full_wikidata_leis()
