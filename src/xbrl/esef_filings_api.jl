@@ -6,6 +6,41 @@ using CSV
 using JSON
 using Memoization
 
+function pluck_xbrl_json(url)
+    r = HTTP.get(url)
+
+    # Check 200 HTTP status code
+    @assert(r.status == 200)
+
+    raw_data = @chain r.body begin
+        String()
+        JSON.parse()
+    end
+
+    finished_facts = DataFrame()
+
+    for (k, fact) in raw_data["facts"]
+        flat_fact = rec_flatten_dict(fact)
+
+        if haskey(flat_fact, "dimensions.entity")
+            flat_fact["dimensions.entity"] = replace(
+                flat_fact["dimensions.entity"], "scheme:" => ""
+            )
+        end
+
+        for (k_subfact, v_subfact) in flat_fact
+            push!(
+                finished_facts,
+                NamedTuple{(:subject, :predicate, :object)}([
+                    k, k_subfact, string(v_subfact)
+                ]),
+            )
+        end
+    end
+
+    return finished_facts
+end
+
 # TODO: Extract XBRL facts from items where "xbrl-json" key is populated.
 # 2594003JTXPYO8NOG018/2020-12-31/ESEF/PL/0
 # https://filings.xbrl.org/2594003JTXPYO8NOG018/2020-12-31/ESEF/PL/0/enea-2020-12-31.json

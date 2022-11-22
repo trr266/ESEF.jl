@@ -8,7 +8,10 @@ WHERE {
        # Retrieve all facts from public companies / entities with LEIs / entitites with ISINs
        {
        ?sub p:P31 ?statement0 . # Entities which are instances of businesses or its subclasses
-       ?statement0 (ps:P31/(wdt:P279*)) wd:Q4830453 .
+       ?statement0 (ps:P31) wd:Q4830453 .
        }
+
+       
        ?sub ?p ?o.
 }
+LIMIT 10000000

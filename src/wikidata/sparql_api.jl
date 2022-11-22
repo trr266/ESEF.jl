@@ -6,6 +6,7 @@ using Mustache
 
 function query_wikidata(sparql_query_file; params=Dict())
     # TODO: Consider requesting verbose format, parsing based on data type
+    # TODO: Check and error if query limit is reached by results
     headers = [
         "Accept" => "application/sparql-results+json",
         "Content-Type" => "application/x-www-form-urlencoded",

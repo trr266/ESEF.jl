@@ -29,3 +29,11 @@ end
 @testset "Quick Statement: Merge" begin
     @test ESEF.compose_merge_statement(["Q1", "Q2", "Q3"]) == ["MERGE\tQ1\tQ2", "MERGE\tQ1\tQ3"]
 end
+
+
+@testset "ISO Country Lookup" begin
+    df = ESEF.get_country_codes()
+    nrow(df) == 250
+    ncol(df) == 3
+    2 == @chain df @subset((:country == "United Kingdom") | (:country == "Czechoslovakia")) nrow
+end
