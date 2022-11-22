@@ -17,7 +17,7 @@ include("wikidata/export_company_facts.jl")
 
 include("local_sparql_db/sparql.jl")
 include("local_sparql_db/oxigraph_server.jl")
-include("local_sparql_db/local_esef_db.jl")
+include("local_sparql_db/load_esef_db.jl")
 
 include("exploration/analysis.jl")
 include("exploration/visualizations.jl")
