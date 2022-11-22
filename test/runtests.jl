@@ -62,4 +62,33 @@ end
 end
 
 using ESEF
-ESEF.esef_wikidata_mini_analysis()
+
+@testset "Wikidata Mini Analysis" begin
+    d_obj = ESEF.esef_wikidata_mini_analysis()
+    @test length(d_obj) == 3
+    @test names(d_obj[1]) == [
+        "key",
+        "entity_name",
+        "country_alpha_2",
+        "date",
+        "filing_key",
+        "error_count",
+        "error_codes",
+        "xbrl_json_path",
+        "country",
+        "region",
+        "wikidata_uri",
+        "company_label",
+        "country_1",
+        "country_uri",
+        "country_alpha_2_1",
+        "isin_id",
+        "isin_alpha_2",
+        "region_1",
+        "isin_country",
+        "isin_region",
+        "esef_regulated"
+    ]
+    @test names(d_obj[2]) == ["key", "entity_name", "company_label"]
+    @test names(d_obj[3]) == ["key", "error_code"]
+end
