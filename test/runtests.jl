@@ -37,3 +37,10 @@ end
     ncol(df) == 3
     2 == @chain df @subset((:country == "United Kingdom") | (:country == "Czechoslovakia")) nrow
 end
+
+@testset "ESMA Regulated Markets" begin
+    df = get_regulated_markets_esma()
+    nrow(df) >= 100
+    nrow(df) <= 200
+    ncol(df) == 7
+end
