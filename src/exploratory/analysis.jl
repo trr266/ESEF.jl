@@ -42,13 +42,3 @@ function esef_wikidata_mini_analysis()
     # @assert(nrow(df_1) == 0, "All XBRL filings should have corresponding wikidata entry")
     return df, df_1, df_error
 end
-
-
-# df_1_ = @chain df_1 begin
-#     unique()
-#     @transform(@astable begin
-#     :legal_name, :other_name = get_lei_names(:key)
-#     end)
-# end
-
-# CSV.write("test.csv", df_1_)
