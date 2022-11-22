@@ -142,6 +142,3 @@ end
     @test nrow(country_rollup) == 26
     @test names(country_rollup) == ["country", "report_count"]
 end
-
-using ESEF
-
