@@ -12,6 +12,7 @@ include("lei/gleif_api.jl")
 
 include("xbrl/esef_filings_api.jl")
 
+include("wikidata/quick_statements.jl")
 include("wikidata/sparql_api.jl")
 include("wikidata/object_lookup.jl")
 include("wikidata/export_company_facts.jl")
