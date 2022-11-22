@@ -13,7 +13,6 @@ using URIParser
 
 function esef_wikidata_mini_analysis()
     df_wikidata_lei = get_lei_companies_wikidata()
-    df_wikidata_lei = enrich_wikidata_with_twitter_data(df_wikidata_lei)
 
     # Add further data checks
     # Check only minimal number of firms where country is missing (e.g. EU, ersatz XC/XY/XS, or incorrect 00, 23)

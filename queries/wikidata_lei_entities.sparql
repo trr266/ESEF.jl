@@ -9,7 +9,7 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 
-SELECT DISTINCT ?entity ?entityLabel ?isin_value ?lei_value ?country ?countryLabel ?country_alpha_2 ?twitter_value WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?isin_value ?lei_value ?country ?countryLabel ?country_alpha_2 WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en,de,fr,it". }
   {
     SELECT DISTINCT ?entity ?lei_value WHERE {
@@ -36,10 +36,6 @@ SELECT DISTINCT ?entity ?entityLabel ?isin_value ?lei_value ?country ?countryLab
   OPTIONAL {
       ?entity (p:P946) ?isin_prop .
       ?isin_prop (ps:P946) ?isin_value . # isin id
-  }
-  OPTIONAL {
-      ?entity (p:P2002) ?twitter_prop .
-      ?twitter_prop (ps:P2002) ?twitter_value . # twitter username
   }
 }
 

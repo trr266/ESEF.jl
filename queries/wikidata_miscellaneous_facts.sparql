@@ -17,9 +17,6 @@ WHERE {
        ?blank2 p:P946 ?sub .
        ?sub ps:P946 ?o . # ISIN ID
        } UNION {
-       ?blank3 (p:P2002) ?sub .
-       ?sub (ps:P2002) ?o . # Twitter username
-       } UNION {
        ?blank4 p:P17 ?sub .
        ?sub ps:P17 ?o . # Country
        }

@@ -46,7 +46,6 @@ end
 # https://filings.xbrl.org/2594003JTXPYO8NOG018/2020-12-31/ESEF/PL/0/enea-2020-12-31.json
 
 @memoize function get_esef_xbrl_filings()
-    # TODO: backfill twitter profiles for xbrl entries?
     xbrl_esef_index_endpoint = "https://filings.xbrl.org/index.json"
     r = HTTP.get(xbrl_esef_index_endpoint)
 

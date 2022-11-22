@@ -219,47 +219,6 @@ function generate_esef_error_hist()
     return draw(plt; axis)
 end
 
-function generate_esef_errors_followers()
-    if "TWITTER_BEARER_TOKEN" ∉ keys(ENV)
-        return nothing
-    end
-
-    # TODO: figure out why entries are not unique...
-    df_wikidata_lei = get_lei_companies_wikidata()
-    df_wikidata_lei = enrich_wikidata_with_twitter_data(df_wikidata_lei)
-
-    # TODO: backfill twitter profiles for xbrl entries?
-    df, df_error = get_esef_xbrl_filings()
-
-    df = @chain df begin
-        leftjoin(
-            df_wikidata_lei; on=(:key => :lei_id), matchmissing=:notequal, makeunique=true
-        )
-    end
-
-    axis = (
-        width=500,
-        height=500,
-        xticks=[1, 50:50:500...],
-        ylabel="Log1p Error Count",
-        xlabel="Log1p Twitter Follower Count (Cumulative)",
-        title="ESEF Filing Errors by Twitter Follower Count",
-    )
-
-    plt = @chain df begin
-        @subset(!ismissing(:agg_followers_count))
-        @transform(
-            :error_count_log = log1p(:error_count),
-            :agg_followers_count_log = log1p(:agg_followers_count)
-        )
-        data(_) *
-        mapping(:agg_followers_count_log, :error_count_log) *
-        (linear() + visual(Scatter; color=trr_266_colors[1]))
-    end
-
-    return draw(plt; axis)
-end
-
 function generate_esef_country_availability_bar()
     df, df_error = get_esef_xbrl_filings()
 
@@ -438,7 +397,6 @@ function generate_esef_homepage_viz()
         :esef_error_country_heatmap => generate_esef_error_country_heatmap(),
         :esef_error_hist => generate_esef_error_hist(),
         :esef_error_type_freq_bar => generate_esef_error_type_freq_bar(),
-        :esef_errors_followers => generate_esef_errors_followers(),
         :esef_mandate_overview => generate_esef_mandate_map(),
         :esef_publication_date_composite => generate_esef_publication_date_composite(),
     )

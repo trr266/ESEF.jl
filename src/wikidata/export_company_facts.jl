@@ -6,37 +6,6 @@ using Chain
 using Mustache
 using Memoization
 
-function enrich_wikidata_with_twitter_data(df_wikidata)
-    tw_lookup = DataFrame(:qid => [], :twitter_user => [])
-
-    for r in eachrow((@chain df_wikidata @subset(
-        !ismissing(:twitter_handles) & (:twitter_handles != "missing")
-    )))
-        for t_user in split(r[:twitter_handles], ",")
-            push!(tw_lookup, [r[:wikidata_uri], t_user])
-        end
-    end
-
-    df_twitter = query_twitter_user_profiles(unique(tw_lookup[!, :twitter_user]))
-
-    tw_lookup = @chain tw_lookup begin
-        leftjoin(
-            (@chain df_twitter @select(:username, :followers_count));
-            on=[:twitter_user => :username],
-        )
-        @groupby(:qid)
-        @combine(:agg_followers_count = sum(:followers_count))
-    end
-
-    df_wikidata = @chain df_wikidata begin
-        leftjoin(tw_lookup; on=[:wikidata_uri => :qid])
-    end
-
-    return df_wikidata
-end
-
-
-
 function basic_wikidata_preprocessing(df)
     df = @chain df begin
         @transform(:wikidata_uri = :entity["value"])
@@ -46,7 +15,6 @@ function basic_wikidata_preprocessing(df)
         @transform(:country = @passmissing :countryLabel["value"])
         @transform(:country_alpha_2 = @passmissing :country_alpha_2["value"])
         @transform(:isin_alpha_2 = @passmissing first(:isin_id, 2))
-        @transform(:twitter_handle = @passmissing :twitter_value["value"])
         @transform(:lei_id = @passmissing :lei_value["value"])
         @groupby(
             :wikidata_uri,
@@ -58,7 +26,6 @@ function basic_wikidata_preprocessing(df)
             :isin_alpha_2,
             :lei_id
         )
-        @combine(:twitter_handles = join(:twitter_handle, ","))
         @select(
             :wikidata_uri,
             :company_label,
@@ -68,7 +35,6 @@ function basic_wikidata_preprocessing(df)
             :isin_id,
             :isin_alpha_2,
             :lei_id,
-            :twitter_handles
         )
     end
 
