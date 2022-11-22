@@ -60,3 +60,6 @@ end
     isin_data = get_isin_data(lei)
     @test isin_data == ["DE0007664005", "DE0007664039"]
 end
+
+using ESEF
+ESEF.esef_wikidata_mini_analysis()
