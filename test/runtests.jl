@@ -47,6 +47,16 @@ end
 
 
 @testset "GLEIF LEI API" begin
-    lei_obj = get_lei_data("549300PSVDV3P50KHS39")
-    @test [keys(lei_obj)...] == ["meta", "links", "data"]
+    lei = "529900NNUPAGGOMPXZ31"
+    lei_data = get_lei_data(lei)
+    @test [keys(lei_data)...] == ["meta", "links", "data"]
+
+    lei_clean_data = extract_lei_information(lei_data["data"][1])
+    @test [keys(lei_clean_data)...] == ["name", "lei", "country", "isins"]
+end
+
+@testset "GLEIF ISIN API" begin
+    lei = "529900NNUPAGGOMPXZ31"
+    isin_data = get_isin_data(lei)
+    @test isin_data == ["DE0007664005", "DE0007664039"]
 end
