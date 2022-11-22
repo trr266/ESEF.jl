@@ -75,7 +75,7 @@ function build_wikidata_record(lei_data, wd_country_lookup)
 end
 
 function get_iso_wikidata_lookup()
-    q_path = joinpath(@__DIR__, "..", "queries", "wikidata_country_iso_2.sparql")
+    q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata_country_iso_2.sparql")
     df = @chain q_path begin
         query_wikidata()
         @transform(:country = :country["value"], :country_alpha_2 = :country_alpha_2["value"])
@@ -86,7 +86,7 @@ function get_iso_wikidata_lookup()
 end
 
 function get_full_wikidata_leis()
-    q_path = joinpath(@__DIR__, "..", "queries", "wikidata_pure_lei.sparql")
+    q_path = joinpath(@__DIR__, "..", "..", "wikidata_pure_lei.sparql")
     df = @chain q_path begin
         query_wikidata()
         @transform(:entity = :entity["value"], :entityLabel = :entityLabel["value"], :lei_value = :lei_value["value"])
