@@ -120,3 +120,14 @@ end
 
     return df, df_error
 end
+
+function calculate_country_rollup(df)
+    country_rollup = @chain df begin
+        @subset(!ismissing(:country))
+        @groupby(:country)
+        @combine(:report_count = length(:country))
+        @transform(:report_count = coalesce(:report_count, 0))
+        @sort(:report_count; rev=true)
+    end
+    return country_rollup
+end

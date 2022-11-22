@@ -3,6 +3,7 @@ module ESEF
 import Base: @invokelatest
 
 include("helpers/flatten_dict.jl")
+include("helpers/truncate_text.jl")
 
 include("dataset/esma_regulated_markets.jl")
 include("dataset/iso_country_codes.jl")

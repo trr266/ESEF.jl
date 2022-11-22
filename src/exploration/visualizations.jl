@@ -20,27 +20,8 @@ using OrderedCollections
 
 trr_266_colors = ["#1b8a8f", "#ffb43b", "#6ecae2", "#944664"] # petrol, yellow, blue, red
 
-function truncate_text(string)
-    if length(string) > 30
-        return string[1:15] * "..." * string[(end - 14):end]
-    else
-        return string
-    end
-end
-
-function calculate_country_rollup(df)
-    country_rollup = @chain df begin
-        @subset(!ismissing(:country))
-        @groupby(:country)
-        @combine(:report_count = length(:country))
-        @transform(:report_count = coalesce(:report_count, 0))
-        @sort(:report_count; rev=true)
-    end
-    return country_rollup
-end
-
 function get_esef_mandate_df()
-    d_path = joinpath(@__DIR__, "..", "data", "esef_mandate_overview.csv")
+    d_path = joinpath(@__DIR__, "..", "..", "data", "esef_mandate_overview.csv")
     esef_year_df = @chain d_path CSV.read(DataFrame; normalizenames=true)
     return esef_year_df
 end

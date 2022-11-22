@@ -1,5 +1,8 @@
-using Test
 using ESEF
+
+using DataFrames
+using GeoJSON
+using Test
 
 @testset "ESEF.jl Visualizations" begin
     plots = ESEF.generate_esef_homepage_viz()
@@ -11,7 +14,6 @@ using ESEF
         :esef_error_country_heatmap,
         :esef_error_hist,
         :esef_error_type_freq_bar,
-        :esef_errors_followers,
         :esef_mandate_overview,
         :esef_publication_date_composite,
     ])
@@ -90,3 +92,56 @@ end
     @test names(d_obj[2]) == ["key", "entity_name", "company_label"]
     @test names(d_obj[3]) == ["key", "error_code"]
 end
+
+@testset "truncate_text" begin
+    @test ESEF.truncate_text(repeat("a", 100)) == "aaaaaaaaaaaaaaa...aaaaaaaaaaaaaaa"
+    @test ESEF.truncate_text(repeat("a", 30)) == "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+end
+
+@testset "ESEF Mandate Dataset" begin
+    @test names(ESEF.get_esef_mandate_df()) == [
+        "Country",
+        "XBRL_Repo",
+        "Mandate_Affects_Fiscal_Year_Beginning",
+        "API_Access_to_Reports",
+        "Notes",
+        "Column6",
+        "Column7",
+    ]
+end
+
+@testset "ESEF Visualizations: European Basemap" begin
+    geo = ESEF.generate_esef_basemap()
+    @test geo isa GeoJSON.FeatureCollection
+end
+
+@testset "ESEF XBRL Filings API" begin
+    df, df_error = ESEF.get_esef_xbrl_filings()
+    @test ncol(df) == 10
+    @test nrow(df) > 4000
+    @test names(df) == [
+        "key",
+        "entity_name",
+        "country_alpha_2",
+        "date",
+        "filing_key",
+        "error_count",
+        "error_codes",
+        "xbrl_json_path",
+        "country",
+        "region"
+    ]
+
+    @test ncol(df_error) == 2
+    @test nrow(df_error) > 1000
+    @test names(df_error) == ["key", "error_code"]
+
+    country_rollup = ESEF.calculate_country_rollup(df)
+
+    @test ncol(country_rollup) == 2
+    @test nrow(country_rollup) == 26
+    @test names(country_rollup) == ["country", "report_count"]
+end
+
+using ESEF
+
