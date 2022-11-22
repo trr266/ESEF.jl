@@ -61,8 +61,6 @@ end
     @test isin_data == ["DE0007664005", "DE0007664039"]
 end
 
-using ESEF
-
 @testset "Wikidata Mini Analysis" begin
     d_obj = ESEF.esef_wikidata_mini_analysis()
     @test length(d_obj) == 3
