@@ -6,14 +6,15 @@ using Chain
 using DataFrameMacros
 
 function get_lei_data(lei)
-    sleep(1.01) # Rate limited to 1 request per second
-    r = HTTP.get("https://api.gleif.org/api/v1/lei-records";
-        query=Dict("filter[lei]" => lei,
-        "page[size]"=> 200))
+    query = Dict("filter[lei]" => lei, "page[size]"=> 200)
 
-    @assert(r.status == 200)
-
-    d = JSON.parse(String(r.body))
+    @chain "https://api.gleif.org/api/v1/lei-records" begin
+        HTTP.get(; query=query)
+        @aside @assert(_.status == 200)
+        _.body
+        String
+        JSON.parse
+    end
 end
 
 function get_lei_names(lei_data)
@@ -127,6 +128,7 @@ function import_missing_leis_to_wikidata(leis)
         i += 200
     
         lei_data = get_lei_data(lei_str)["data"]
+        sleep(1.01) # `get_lei_data` Rate limited to 1 request per second
         append!(qs_statements, [build_wikidata_record(lei_data_, wd_country_lookup) for lei_data_ in lei_data])
     end
     

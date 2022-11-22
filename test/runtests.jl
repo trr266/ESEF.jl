@@ -33,14 +33,20 @@ end
 
 @testset "ISO Country Lookup" begin
     df = ESEF.get_country_codes()
-    nrow(df) == 250
-    ncol(df) == 3
-    2 == @chain df @subset((:country == "United Kingdom") | (:country == "Czechoslovakia")) nrow
+    @test nrow(df) == 250
+    @test ncol(df) == 3
+    @test 2 == @chain df @subset((:country == "United Kingdom") | (:country == "Czechoslovakia")) nrow
 end
 
 @testset "ESMA Regulated Markets" begin
     df = get_regulated_markets_esma()
-    nrow(df) >= 100
-    nrow(df) <= 200
-    ncol(df) == 7
+    @test nrow(df) >= 100
+    @test nrow(df) <= 200
+    @test ncol(df) == 7
+end
+
+
+@testset "GLEIF LEI API" begin
+    lei_obj = get_lei_data("549300PSVDV3P50KHS39")
+    @test [keys(lei_obj)...] == ["meta", "links", "data"]
 end
