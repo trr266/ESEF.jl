@@ -170,10 +170,12 @@ end
 
 
 # using Chain
-# using DataFrameMacros
-# using DataFrames
-# # function m1(a, b)
-# #     join(join(a, ","), join(b, ","), "\n")
-# # end
-# # @chain DataFrame(a = [1,2,3]; b = [1,2,3]) @combine(@bycol m1(:a, :b))
+using DataFrameMacros
+using DataFrames
+using Chain
+
+function m1(a, b)
+    join(join(a, ","), join(b, ","), "\n")
+end
+@chain DataFrame(a = [1,2,3]; b = [1,2,3]) @combine(:a = @bycol m1(:a, :b))
 
