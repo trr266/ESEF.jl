@@ -87,7 +87,9 @@ end
 
 function get_company_facts()
     # TODO: swap this out for artifacts https://pkgdocs.julialang.org/v1/creating-packages/=
-    q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata_company_lei_isin_facts.sparql")
+    q_path = joinpath(
+        @__DIR__, "..", "..", "queries", "wikidata_company_lei_isin_facts.sparql"
+    )
     df = @chain q_path query_wikidata() @select(
         :subject = :sub["value"], :predicate = :p["value"], :object = :o["value"]
     )

@@ -16,7 +16,7 @@ function get_regulated_markets_esma()
         String()
         JSON.parse()
         # Check that everything fit in one page
-        @aside @assert(_["response"]["numFound"] < 1000) 
+        @aside @assert(_["response"]["numFound"] < 1000)
     end
 
     df = DataFrame()

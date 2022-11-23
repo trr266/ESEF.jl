@@ -18,9 +18,9 @@ function generate_quick_statement(d, wd_country_lookup)
 
     wd_country = @chain wd_country_lookup begin
         @subset(:country_alpha_2 == d["country"])
-        _[1,1]
+        _[1, 1]
     end
-    
+
     d_country = """
     LAST\tP17\t$(wd_country)
     """
@@ -39,13 +39,16 @@ function import_missing_leis_to_wikidata(leis)
     i = 1
     qs_statements = []
     while i < length(leis)
-        lei_str = join(leis[i:min(i+200, length(leis))], ",")
+        lei_str = join(leis[i:min(i + 200, length(leis))], ",")
         i += 200
-    
+
         lei_data = get_lei_data(lei_str)["data"]
-        append!(qs_statements, [build_wikidata_record(lei_data_, wd_country_lookup) for lei_data_ in lei_data])
+        append!(
+            qs_statements,
+            [build_wikidata_record(lei_data_, wd_country_lookup) for lei_data_ in lei_data],
+        )
     end
-    
+
     qs_statements_str = join(qs_statements, "\n")
 
     open("quick_statement.txt", "w") do f
@@ -66,8 +69,13 @@ function get_iso_wikidata_lookup()
     q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata_country_iso_2.sparql")
     df = @chain q_path begin
         query_wikidata()
-        @transform(:country = :country["value"], :country_alpha_2 = :country_alpha_2["value"])
-        @select(:country = replace(:country, "http://www.wikidata.org/entity/" => ""), :country_alpha_2)
+        @transform(
+            :country = :country["value"], :country_alpha_2 = :country_alpha_2["value"]
+        )
+        @select(
+            :country = replace(:country, "http://www.wikidata.org/entity/" => ""),
+            :country_alpha_2
+        )
     end
 
     return df
@@ -77,7 +85,11 @@ function get_full_wikidata_leis()
     q_path = joinpath(@__DIR__, "..", "..", "wikidata_pure_lei.sparql")
     df = @chain q_path begin
         query_wikidata()
-        @transform(:entity = :entity["value"], :entityLabel = :entityLabel["value"], :lei_value = :lei_value["value"])
+        @transform(
+            :entity = :entity["value"],
+            :entityLabel = :entityLabel["value"],
+            :lei_value = :lei_value["value"]
+        )
     end
 
     return df
@@ -89,7 +101,7 @@ function merge_duplicate_wikidata_on_leis()
     dupe_leis = @chain df begin
         _[findall(nonunique(_, :lei_value)), :lei_value]
     end
-    
+
     qs_statements_str = @chain df begin
         @subset(:lei_value ∈ dupe_leis)
         @transform(:entity = replace(:entity, "http://www.wikidata.org/entity/" => ""))
@@ -97,8 +109,8 @@ function merge_duplicate_wikidata_on_leis()
         @combine(:merge_statement = compose_merge_statement(:entity))
         join(_[:, :merge_statement], "\n")
     end
-    
+
     open("quick_statement.txt", "w") do f
         write(f, qs_statements_str)
-    end    
+    end
 end

@@ -7,7 +7,7 @@ using DataFrameMacros
 
 function get_lei_data(lei)
     sleep(1) # Rate limited to 1 request per second
-    query = Dict("filter[lei]" => lei, "page[size]"=> 200)
+    query = Dict("filter[lei]" => lei, "page[size]" => 200)
 
     @chain "https://api.gleif.org/api/v1/lei-records" begin
         HTTP.get(; query=query)
@@ -51,7 +51,7 @@ function get_isin_data(lei)
 end
 
 function extract_lei_information(lei_data)
-    d_out = Dict{String, Any}()
+    d_out = Dict{String,Any}()
 
     d_out["lei"] = lei_data["id"]
 

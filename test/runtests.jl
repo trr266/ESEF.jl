@@ -29,7 +29,8 @@ end
 
 
 @testset "Quick Statement: Merge" begin
-    @test ESEF.compose_merge_statement(["Q1", "Q2", "Q3"]) == ["MERGE\tQ1\tQ2", "MERGE\tQ1\tQ3"]
+    @test ESEF.compose_merge_statement(["Q1", "Q2", "Q3"]) ==
+          ["MERGE\tQ1\tQ2", "MERGE\tQ1\tQ3"]
 end
 
 
@@ -37,7 +38,8 @@ end
     df = ESEF.get_country_codes()
     @test nrow(df) == 250
     @test ncol(df) == 3
-    @test 2 == @chain df @subset((:country == "United Kingdom") | (:country == "Czechoslovakia")) nrow
+    @test 2 ==
+          @chain df @subset((:country == "United Kingdom") | (:country == "Czechoslovakia")) nrow
 end
 
 @testset "ESMA Regulated Markets" begin
@@ -87,7 +89,7 @@ end
         "region_1",
         "isin_country",
         "isin_region",
-        "esef_regulated"
+        "esef_regulated",
     ]
     @test names(d_obj[2]) == ["key", "entity_name", "company_label"]
     @test names(d_obj[3]) == ["key", "error_code"]
@@ -129,7 +131,7 @@ end
         "error_codes",
         "xbrl_json_path",
         "country",
-        "region"
+        "region",
     ]
 
     @test ncol(df_error) == 2
