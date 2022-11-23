@@ -5,9 +5,13 @@ using CSV
 using Chain
 using DataFrameMacros
 
-function get_lei_data(lei)
+function get_lei_data(lei::Vector)
+    get_lei_data(join(lei, ","))
+end
+
+function get_lei_data(lei::String)
     sleep(1) # Rate limited to 1 request per second
-    query = Dict("filter[lei]" => lei, "page[size]"=> 200)
+    query = Dict("filter[lei]" => lei, "page[size]" => 200)
 
     @chain "https://api.gleif.org/api/v1/lei-records" begin
         HTTP.get(; query=query)
@@ -15,21 +19,20 @@ function get_lei_data(lei)
         _.body
         String
         JSON.parse
+        _["data"]
     end
 end
 
 function get_lei_names(lei_data)
     lei_legal_name = missing
-    try
+    if "legalName" in keys(lei_data["attributes"]["entity"])
         lei_legal_name = lei_data["attributes"]["entity"]["legalName"]["name"]
-    catch
     end
 
     lei_other_name = missing
 
-    try
+    if "otherNames" in keys(lei_data["attributes"]["entity"])
         lei_other_name = lei_data["attributes"]["entity"]["otherNames"][1]["name"]
-    catch
     end
 
     return lei_legal_name, lei_other_name
@@ -51,9 +54,9 @@ function get_isin_data(lei)
 end
 
 function extract_lei_information(lei_data)
-    d_out = Dict{String, Any}()
+    d_out = Dict{String,Any}()
 
-    d_out["lei"] = lei_data["id"]
+    d_out["lei"] = lei_data["lei"]
 
     if haskey(lei_data["relationships"], "isins")
         d_out["isins"] = get_isin_data(d_out["lei"])
@@ -61,7 +64,12 @@ function extract_lei_information(lei_data)
         d_out["isins"] = []
     end
 
-    d_out["name"] = lei_data["attributes"]["entity"]["legalName"]
+    d_out["entity_names"] = [
+        Dict(
+            "name" => lei_data["attributes"]["entity"]["legalName"]["name"],
+            "language" => lei_data["attributes"]["entity"]["legalName"]["language"][1:2],
+        ),
+    ]
 
     d_out["country"] = lei_data["attributes"]["entity"]["legalAddress"]["country"]
     return d_out

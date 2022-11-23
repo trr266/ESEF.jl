@@ -1,18 +1,23 @@
 using Chain
 using DataFrames
+using DataFrameMacros
 
-function generate_quick_statement_from_lei_obj(d)
+function generate_quick_statement_from_lei_obj(gleif_lei_obj)
     df_quick_statements = DataFrame(; predicate=String[], object=Int[])
 
-    # Language-tagged Company Name 
-    push!(df_quick_statements, [d["name"]["language"][1:2], d["name"]["name"]])
+    # Language-tagged Primary Company Name 
+    push!(df_quick_statements,
+        [
+            gleif_lei_obj["entity_names"][1]["language"],
+            gleif_lei_obj["entity_names"][1]["name"]
+        ])
 
     # LEI
-    push!(df_quick_statements, ["P1278", d["lei"]])
+    push!(df_quick_statements, ["P1278", gleif_lei_obj["lei"]])
     
     # Legal Jurisdiction (ISO Wikidata is memoized)
     @chain get_wikidata_country_iso2_lookup() begin
-        @subset(:country_alpha_2 == d["country"])
+        @subset(:country_alpha_2 == gleif_lei_obj["country"])
         _[1,1]
         @aside push!(df_quick_statements, ["P17", _])
     end
@@ -26,14 +31,15 @@ function generate_quick_statement_from_lei_obj(d)
     push!(df_quick_statements, ["P31", "Q6881511"])
 
     qs_statement = @chain df_quick_statements
-        @bycol build_quick_statement(:predicate, :object)
+        @bycols build_quick_statement(:predicate, :object)
     end
 
     return qs_statement
 end
 
-function build_wikidata_record(lei_data)
-    @chain lei_data begin
+function build_wikidata_record(lei)
+    @chain lei begin
+        get_lei_data()
         extract_lei_information()
         generate_quick_statement_from_lei_obj()
     end

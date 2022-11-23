@@ -43,7 +43,7 @@ end
 end
 
 @testset "ESMA Regulated Markets" begin
-    df = get_regulated_markets_esma()
+    df = ESEF.get_regulated_markets_esma()
     @test nrow(df) >= 100
     @test nrow(df) <= 200
     @test ncol(df) == 7
@@ -52,16 +52,21 @@ end
 
 @testset "GLEIF LEI API" begin
     lei = "529900NNUPAGGOMPXZ31"
-    lei_data = get_lei_data(lei)
-    @test [keys(lei_data)...] == ["meta", "links", "data"]
+    lei_data = ESEF.get_lei_data([lei, "HWUPKR0MPOU8FGXBT394"])
+    @test length(lei_data) == 2
+    @test [keys(lei_data[1])...] == ["links", "attributes", "id", "type", "relationships"]
 
-    lei_clean_data = extract_lei_information(lei_data["data"][1])
+    lei_data = ESEF.get_lei_data(lei)
+    @test length(lei_data) == 1
+    @test [keys(lei_data[1])...] == ["links", "attributes", "id", "type", "relationships"]
+
+    lei_clean_data = ESEF.extract_lei_information(lei_data[1])
     @test [keys(lei_clean_data)...] == ["name", "lei", "country", "isins"]
 end
 
 @testset "GLEIF ISIN API" begin
     lei = "529900NNUPAGGOMPXZ31"
-    isin_data = get_isin_data(lei)
+    isin_data = ESEF.get_isin_data(lei)
     @test isin_data == ["DE0007664005", "DE0007664039"]
 end
 
@@ -146,12 +151,19 @@ end
 end
 
 @testset "Quick Statement Construction" begin
-    @test build_quick_statement("LAST", "P31", "Q5") == "LAST\tP31\tQ5"
-    @test build_quick_statement("LAST", "P31", "Q5") == "LAST\tP31\tQ5"
+    @test ESEF.build_quick_statement("LAST", "P31", "Q5") == "LAST\tP31\tQ5"
+    @test ESEF.build_quick_statement("LAST", "P31", "Q5") == "LAST\tP31\tQ5"
 
-    @test build_quick_statement("LAST", ["P31", "P31"], ["Q5", "Q5"]) == ["LAST\tP31\tQ5", "LAST\tP31\tQ5"]
+    @test ESEF.build_quick_statement("LAST", ["P31", "P31"], ["Q5", "Q5"]) == ["LAST\tP31\tQ5", "LAST\tP31\tQ5"]
 
-    @test build_quick_statement(["P31", "P31"], ["Q5", "Q5"]) == "CREATE" *
+    @test ESEF.build_quick_statement(["P31", "P31"], ["Q5", "Q5"]) == "CREATE" *
         "\nLAST\tP31\tQ5" *
         "\nLAST\tP31\tQ5"
 end
+
+
+lei = "529900NNUPAGGOMPXZ31"
+lei_data = ESEF.get_lei_data(lei)
+ESEF.extract_lei_information(lei_data[1])
+
+lei_data = ESEF.get_lei_data([lei, "HWUPKR0MPOU8FGXBT394"])
