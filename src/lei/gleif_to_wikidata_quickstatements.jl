@@ -31,7 +31,8 @@ function generate_quick_statement_from_lei_obj(gleif_lei_obj)
     push!(df_quick_statements, ["P31", "Q6881511"])
 
     qs_statement = @chain df_quick_statements
-        @bycols build_quick_statement(:predicate, :object)
+        @combine(:qs = @bycol build_quick_statement(:predicate, :object))
+        _[1]
     end
 
     return qs_statement

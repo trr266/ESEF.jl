@@ -162,8 +162,18 @@ end
 end
 
 
-lei = "529900NNUPAGGOMPXZ31"
-lei_data = ESEF.get_lei_data(lei)
-ESEF.extract_lei_information(lei_data[1])
+# lei = "529900NNUPAGGOMPXZ31"
+# lei_data = ESEF.get_lei_data(lei)
+# ESEF.extract_lei_information(lei_data[1])
 
-lei_data = ESEF.get_lei_data([lei, "HWUPKR0MPOU8FGXBT394"])
+# lei_data = ESEF.get_lei_data([lei, "HWUPKR0MPOU8FGXBT394"])
+
+
+# using Chain
+# using DataFrameMacros
+# using DataFrames
+# # function m1(a, b)
+# #     join(join(a, ","), join(b, ","), "\n")
+# # end
+# # @chain DataFrame(a = [1,2,3]; b = [1,2,3]) @combine(@bycol m1(:a, :b))
+
