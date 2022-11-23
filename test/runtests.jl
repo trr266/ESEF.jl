@@ -24,12 +24,14 @@ end
 end
 
 @testset "LEI query" begin
-    ESEF.get_lei_names("213800AAFUV5PKGQU848") == ("TYMAN PLC", "LUPUS CAPITAL PLC")
+    lei = "213800AAFUV5PKGQU848"
+    ESEF.get_lei_names(lei) == ("TYMAN PLC", "LUPUS CAPITAL PLC")
 end
 
 
 @testset "Quick Statement: Merge" begin
-    @test ESEF.compose_merge_statement(["Q1", "Q2", "Q3"]) == ["MERGE\tQ1\tQ2", "MERGE\tQ1\tQ3"]
+    wd_obj = ["Q1", "Q2", "Q3"]
+    @test ESEF.compose_merge_statement(wd_obj) == ["MERGE\tQ1\tQ2", "MERGE\tQ1\tQ3"]
 end
 
 
@@ -141,4 +143,15 @@ end
     @test ncol(country_rollup) == 2
     @test nrow(country_rollup) == 26
     @test names(country_rollup) == ["country", "report_count"]
+end
+
+@testset "Quick Statement Construction" begin
+    @test build_quick_statement("LAST", "P31", "Q5") == "LAST\tP31\tQ5"
+    @test build_quick_statement("LAST", "P31", "Q5") == "LAST\tP31\tQ5"
+
+    @test build_quick_statement("LAST", ["P31", "P31"], ["Q5", "Q5"]) == ["LAST\tP31\tQ5", "LAST\tP31\tQ5"]
+
+    @test build_quick_statement(["P31", "P31"], ["Q5", "Q5"]) == "CREATE" *
+        "\nLAST\tP31\tQ5" *
+        "\nLAST\tP31\tQ5"
 end

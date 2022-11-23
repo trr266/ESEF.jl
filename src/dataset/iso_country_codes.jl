@@ -4,6 +4,7 @@ using DataFrames
 using DataFrameMacros
 using CSV
 
+# Drop this, use Wikidata instead
 function get_country_codes()
     country_lookup_url = "https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/all/all.csv"
 
