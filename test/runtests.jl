@@ -4,6 +4,9 @@ using DataFrames
 using GeoJSON
 using Test
 
+lei = "529900NNUPAGGOMPXZ31"
+lei_list = [lei, "HWUPKR0MPOU8FGXBT394"]
+
 @testset "ESEF.jl Visualizations" begin
     plots = ESEF.generate_esef_homepage_viz()
 
@@ -51,8 +54,7 @@ end
 
 
 @testset "GLEIF LEI API" begin
-    lei = "529900NNUPAGGOMPXZ31"
-    lei_data = ESEF.get_lei_data([lei, "HWUPKR0MPOU8FGXBT394"])
+    lei_data = ESEF.get_lei_data(lei_list)
     @test length(lei_data) == 2
     @test [keys(lei_data[1])...] == ["links", "attributes", "id", "type", "relationships"]
 
@@ -60,8 +62,8 @@ end
     @test length(lei_data) == 1
     @test [keys(lei_data[1])...] == ["links", "attributes", "id", "type", "relationships"]
 
-    lei_clean_data = ESEF.extract_lei_information(lei_data[1])
-    @test [keys(lei_clean_data)...] == ["name", "lei", "country", "isins"]
+    lei_clean = ESEF.extract_lei_information(lei_data[1])
+    @test [keys(lei_clean)...] == ["lei", "entity_names", "country", "isins"]
 end
 
 @testset "GLEIF ISIN API" begin
@@ -157,25 +159,37 @@ end
     @test ESEF.build_quick_statement("LAST", ["P31", "P31"], ["Q5", "Q5"]) == ["LAST\tP31\tQ5", "LAST\tP31\tQ5"]
 
     @test ESEF.build_quick_statement(["P31", "P31"], ["Q5", "Q5"]) == "CREATE" *
-        "\nLAST\tP31\tQ5" *
-        "\nLAST\tP31\tQ5"
+                                                                      "\nLAST\tP31\tQ5" *
+                                                                      "\nLAST\tP31\tQ5"
 end
 
+@testset "generate_quick_statement_from_lei_obj" begin
+    lei_obj = Dict("lei" => "529900NNUPAGGOMPXZ31",
+        "entity_names" => [Dict("name" => "VOLKSWAGEN AKTIENGESELLSCHAFT", "language" => "de")],
+        "country" => "DE",
+        "isins" => ["DE0007664039", "DE0007664005"])
 
-# lei = "529900NNUPAGGOMPXZ31"
-# lei_data = ESEF.get_lei_data(lei)
-# ESEF.extract_lei_information(lei_data[1])
+    qs_test_statement = ESEF.generate_quick_statement_from_lei_obj(lei_obj)
+    @test (qs_test_statement ==
+        "CREATE\nLAST\tde\tVOLKSWAGEN AKTIENGESELLSCHAFT\nLAST\tP1278\t529900NNUPAGGOMPXZ31\nLAST\tP17\tQ183\nLAST\tP946\tDE0007664039\nLAST\tP946\tDE0007664005\nLAST\tP31\tQ6881511")
 
-# lei_data = ESEF.get_lei_data([lei, "HWUPKR0MPOU8FGXBT394"])
-
-
-# using Chain
-using DataFrameMacros
-using DataFrames
-using Chain
-
-function m1(a, b)
-    join(join(a, ","), join(b, ","), "\n")
+    wd_record = ESEF.build_wikidata_record(lei)
+    @test (wd_record ==
+    "CREATE\nLAST\tde\tVOLKSWAGEN AKTIENGESELLSCHAFT\nLAST\tP1278\t529900NNUPAGGOMPXZ31\nLAST\tP17\tQ183\nLAST\tP946\tDE0007664039\nLAST\tP946\tDE0007664005\nLAST\tP31\tQ6881511")
+    
+    wd_record_2 = ESEF.build_wikidata_record(lei_list)
+    @test length(wd_record_2) == 2
+    @test wd_record_2[2] == "CREATE\nLAST\ten\tAPPLE INC.\nLAST\tP1278\tHWUPKR0MPOU8FGXBT394\nLAST\tP17\tQ30\nLAST\tP946\tUS03785CBC10\nLAST\tP946\tUS03785CJE93\nLAST\tP946\tUS03785CQ351\nLAST\tP946\tUS03785CMB18\nLAST\tP946\tUS03785CQ682\nLAST\tP946\tUS03785CYG76\nLAST\tP946\tUS03785CMF22\nLAST\tP946\tUS037833AS94\nLAST\tP946\tUS03785CTP31\nLAST\tP946\tUS03785CBH07\nLAST\tP946\tUS03785CN614\nLAST\tP946\tUS03785CJS89\nLAST\tP946\tUS03785C3X40\nLAST\tP946\tUS03785C5B02\nLAST\tP946\tUS03785CA322\nLAST\tP31\tQ6881511" 
 end
-@chain DataFrame(a = [1,2,3]; b = [1,2,3]) @combine(:a = @bycol m1(:a, :b))
 
+@testset "Check Quick Statements Routines" begin
+    @test ESEF.import_missing_leis_to_wikidata(lei_list) isa Int
+    @test ESEF.merge_duplicate_wikidata_on_leis() isa Int
+end
+
+@testset "Query Test: get_full_wikidata_leis"
+    df = ESEF.get_full_wikidata_leis()
+    @test names(df) == ["entity", "entityLabel", "lei_value"]
+    @test nrow(df) > 1e5
+    @test nrow(df) < 1e7
+end

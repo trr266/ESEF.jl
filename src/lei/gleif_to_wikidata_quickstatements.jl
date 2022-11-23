@@ -3,7 +3,7 @@ using DataFrames
 using DataFrameMacros
 
 function generate_quick_statement_from_lei_obj(gleif_lei_obj)
-    df_quick_statements = DataFrame(; predicate=String[], object=Int[])
+    df_quick_statements = DataFrame(; predicate=String[], object=String[])
 
     # Language-tagged Primary Company Name 
     push!(df_quick_statements,
@@ -23,26 +23,35 @@ function generate_quick_statement_from_lei_obj(gleif_lei_obj)
     end
     
     # Associated ISINs
-    for i in d["isins"]
+    for i in gleif_lei_obj["isins"]
         push!(df_quick_statements, ["P946", i])
     end
 
     # Instance of Enterprise
     push!(df_quick_statements, ["P31", "Q6881511"])
 
-    qs_statement = @chain df_quick_statements
+    qs_statement = @chain df_quick_statements begin
         @combine(:qs = @bycol build_quick_statement(:predicate, :object))
-        _[1]
+        _[1, :qs]
     end
 
     return qs_statement
 end
 
-function build_wikidata_record(lei)
+function build_wikidata_record(lei::String)
     @chain lei begin
         get_lei_data()
+        _[1]
         extract_lei_information()
         generate_quick_statement_from_lei_obj()
+    end
+end
+
+function build_wikidata_record(lei::Vector)
+    @chain lei begin
+        get_lei_data()
+        extract_lei_information.()
+        generate_quick_statement_from_lei_obj.()
     end
 end
 
@@ -50,16 +59,13 @@ function import_missing_leis_to_wikidata(leis)
     i = 1
     qs_statements = []
     while i < length(leis)
-        lei_str = join(leis[i:min(i+200, length(leis))], ",")
+        append!(qs_statements, build_wikidata_record(leis[i:min(i+200, length(leis))]))
         i += 200
-    
-        lei_data = get_lei_data(lei_str)["data"]
-        append!(qs_statements, [build_wikidata_record(lei_data_) for lei_data_ in lei_data])
     end
     
     qs_statements_str = join(qs_statements, "\n")
 
-    open("quick_statement.txt", "w") do f
+    open("import_missing_leis_to_wikidata_quick_statement.txt", "w") do f
         write(f, qs_statements_str)
     end
 end
@@ -79,7 +85,7 @@ function merge_duplicate_wikidata_on_leis()
         join(_[:, :merge_statement], "\n")
     end
     
-    open("quick_statement.txt", "w") do f
+    open("merge_duplicate_wikidata_on_leis_quick_statement.txt", "w") do f
         write(f, qs_statements_str)
     end    
 end

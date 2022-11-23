@@ -136,7 +136,7 @@ function lookup_company_by_name(company_name)
 end
 
 function get_full_wikidata_leis()
-    q_path = joinpath(@__DIR__, "..", "..", "wikidata_pure_lei.sparql")
+    q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata_pure_lei.sparql")
     df = @chain q_path begin
         query_wikidata()
         @transform(:entity = :entity["value"], :entityLabel = :entityLabel["value"], :lei_value = :lei_value["value"])
