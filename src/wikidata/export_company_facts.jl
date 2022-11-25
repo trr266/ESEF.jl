@@ -6,9 +6,27 @@ using Chain
 using Mustache
 using Memoization
 
+# TODO: Figure out where this is needed!
+# TODO: Drop excess functions...
+# Add in country names
+# country_lookup = get_country_codes()
+# (@chain country_lookup @select(
+#     :isin_alpha_2 = :country_alpha_2,
+#     :isin_country = :country,
+#     :isin_region = :region
+# ));
 
-function basic_wikidata_preprocessing(df)
-    df = @chain df begin
+
+function get_non_lei_isin_companies_wikidata()
+    """
+    Get a list of companies that have an ISIN but not a LEI from Wikidata.
+    """
+    # TODO: swap this out for artifacts https://pkgdocs.julialang.org/v1/creating-packages/
+    q_path = joinpath(
+        @__DIR__, "..", "..", "queries", "wikidata", "non_lei_isin_firms.sparql"
+    )
+    @chain q_path begin
+        query_wikidata_sparql()
         unpack_value_cols([
             :entity,
             :entityLabel,
@@ -16,82 +34,30 @@ function basic_wikidata_preprocessing(df)
             :country,
             :countryLabel,
             :country_alpha_2,
-            :lei_value
         ])
-        @transform(:isin_alpha_2 = @passmissing first(:isin_id, 2))
-        @groupby(
-            :wikidata_uri,
-            :company_label,
-            :country,
-            :country_uri,
-            :country_alpha_2,
-            :isin_id,
-            :isin_alpha_2,
-            :lei_id
-        )
-        @select(
-            :wikidata_uri,
-            :company_label,
-            :country,
-            :country_uri,
-            :country_alpha_2,
-            :isin_id,
-            :isin_alpha_2,
-            :lei_id,
-        )
-    end
-
-    # Add in country names
-    country_lookup = get_country_codes()
-
-    df = @chain df begin
-        leftjoin(
-            _,
-            (@chain country_lookup @select(:region, :country_alpha_2));
-            on=:country_alpha_2,
-            matchmissing=:notequal,
-        )
-        leftjoin(
-            _,
-            (@chain country_lookup @select(
-                :isin_alpha_2 = :country_alpha_2,
-                :isin_country = :country,
-                :isin_region = :region
-            ));
-            on=:isin_alpha_2,
-            matchmissing=:notequal,
-        )
-    end
-
-    return df = @chain df @transform(
-        :esef_regulated = esef_regulated(:isin_region, :region)
-    )
-end
-
-function get_non_lei_isin_companies_wikidata()
-    # TODO: swap this out for artifacts https://pkgdocs.julialang.org/v1/creating-packages/
-    q_path = joinpath(
-        @__DIR__, "..", "..", "queries", "wikidata", "non_lei_isin_firms.sparql"
-    )
-    @chain q_path begin
-        query_wikidata_sparql()
-        @transform(:lei_id = nothing)
-        # basic_wikidata_preprocessing()
+        @transform(:isin_alpha_2 = first(:isin_value, 2))
     end
 end
 
-df = get_non_lei_isin_companies_wikidata()
 
-@test unpack_value_cols(df, [:a])[1, :a] == 1
+
 
 @memoize function get_lei_companies_wikidata()
     # TODO: figure out why entries are not unique...
     # TODO: swap this out for artifacts https://pkgdocs.julialang.org/v1/creating-packages/=
     q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata", "lei_entities.sparql")
-    df = @chain q_path query_wikidata_sparql()
-    df = basic_wikidata_preprocessing(df)
-
-    return df
+    @chain q_path begin
+        query_wikidata_sparql()
+        unpack_value_cols([
+            :country
+            :countryLabel
+            :country_alpha_2
+            :entity
+            :entityLabel
+            :isin_value
+            :lei_value
+        ])
+    end
 end
 
 function get_company_facts()
@@ -99,10 +65,25 @@ function get_company_facts()
     q_path = joinpath(
         @__DIR__, "..", "..", "queries", "wikidata", "company_lei_isin_facts.sparql"
     )
-    df = @chain q_path query_wikidata_sparql() @select(
-        :subject = :sub["value"], :predicate = :p["value"], :object = :o["value"]
+    @chain q_path begin
+        query_wikidata_sparql()
+        unpack_value_cols([:sub, :predicate, :o])
+        @transform(:object = :o)
+    end
+end
+
+function get_facts_for_property(property)
+    """
+    Get all facts which use a given property.
+    """
+    q_path = joinpath(
+        @__DIR__, "..", "..", "queries", "wikidata", "facts_for_property.sparql"
     )
-    return df
+    @chain q_path begin
+        query_wikidata_sparql(params=Dict("property" => property))
+        unpack_value_cols([:subject, :subjectLabel, :object])
+        @transform(:predicate = "http://www.wikidata.org/entity/$property")
+    end
 end
 
 function esef_regulated(isin_region, country_region)
@@ -131,6 +112,7 @@ function lookup_company_by_name(company_name)
         end
 
         df = @chain df begin
+            # TODO: use unpack_value_cols
             @transform(
                 :wikidata_uri = :company["value"],
                 :company_label = :companyLabel["value"],
@@ -152,14 +134,12 @@ end
 
 function get_full_wikidata_leis()
     q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata", "pure_lei.sparql")
-    df = @chain q_path begin
+    @chain q_path begin
         query_wikidata_sparql()
-        @transform(
-            :entity = :entity["value"],
-            :entityLabel = :entityLabel["value"],
-            :lei_value = :lei_value["value"]
-        )
+        unpack_value_cols([
+            :entity,
+            :entityLabel,
+            :lei_value,
+        ])
     end
-
-    return df
 end

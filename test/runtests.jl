@@ -220,5 +220,33 @@ end
     @test df == DataFrame(a = [missing, 2], b = [3, 4])
 end
 
+@testset "get_non_lei_isin_companies_wikidata" begin
+    df = get_non_lei_isin_companies_wikidata()
+    names(df) == [ "country"
+    "countryLabel"
+    "country_alpha_2"
+    "entity"
+    "entityLabel"
+    "isin_value"
+    "isin_alpha_2"]
+end
 
-# @passmissing
+@testset "get_lei_companies_wikidata" begin
+    df = get_lei_companies_wikidata()
+    @test names(df) == [ "country"
+    "countryLabel"
+    "country_alpha_2"
+    "entity"
+    "entityLabel"
+    "isin_value"
+    "lei_value"]
+end
+
+@testset "get_facts_for_property" begin
+    df = get_facts_for_property("P1278")
+    @test names(df) == ["object"
+    "subject"
+    "subjectLabel"
+    "predicate"]
+    @test nrow(df) > 30000
+end

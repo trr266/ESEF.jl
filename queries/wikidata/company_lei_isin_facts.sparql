@@ -12,3 +12,4 @@ WHERE {
        }
        ?sub ?p ?o.
 }
+LIMIT 10
