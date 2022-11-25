@@ -9,8 +9,9 @@ using DataFrameMacros
         @transform(
             :country = :country["value"], :country_alpha_2 = :country_alpha_2["value"]
         )
+        strip_wikidata_prefix([:country])
         @select(
-            :country = replace(:country, "http://www.wikidata.org/entity/" => ""),
+            :country,
             :country_alpha_2
         )
     end

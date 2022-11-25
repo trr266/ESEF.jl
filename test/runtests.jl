@@ -217,7 +217,7 @@ end
         b = [Dict("value" => 3), Dict("value" => 4)],
     )
     df = unpack_value_cols(df, [:a, :b])
-    @test df == DataFrame(a = [missing, 2], b = [3, 4])
+    @test isequal(df, DataFrame(a = [missing, 2], b = [3, 4]))
 end
 
 @testset "get_non_lei_isin_companies_wikidata" begin
@@ -249,4 +249,16 @@ end
     "subjectLabel"
     "predicate"]
     @test nrow(df) > 30000
+end
+
+@testset "strip_wikidata_prefix" begin
+    df = DataFrame(
+        a = [missing, "http://www.wikidata.org/entity/Q2"],
+        b = ["http://www.wikidata.org/entity/Q2", "http://www.wikidata.org/entity/Q2"]
+    )
+    
+    @test isequal(strip_wikidata_prefix(df, [:a, :b]), DataFrame(
+        a = [missing, "Q2"],
+        b = ["Q2", "Q2"]
+    ))
 end

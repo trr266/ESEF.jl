@@ -79,7 +79,7 @@ function merge_duplicate_wikidata_on_leis()
     
     qs_statements_str = @chain df begin
         @subset(:lei_value ∈ dupe_leis)
-        @transform(:entity = replace(:entity, "http://www.wikidata.org/entity/" => ""))
+        strip_wikidata_prefix([:entity])
         @groupby(:lei_value)
         @combine(:merge_statement = compose_merge_statement(:entity))
         join(_[:, :merge_statement], "\n")
