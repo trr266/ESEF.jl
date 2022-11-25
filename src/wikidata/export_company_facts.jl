@@ -67,7 +67,7 @@ end
 
 function get_non_lei_isin_companies_wikidata()
     # TODO: swap this out for artifacts https://pkgdocs.julialang.org/v1/creating-packages/
-    q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata_non_lei_isin_firms.sparql")
+    q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata", "non_lei_isin_firms.sparql")
     df = @chain q_path query_wikidata()
     df = @chain df @transform(:lei_id = nothing)
     df = basic_wikidata_preprocessing(df)
@@ -78,7 +78,7 @@ end
 @memoize function get_lei_companies_wikidata()
     # TODO: figure out why entries are not unique...
     # TODO: swap this out for artifacts https://pkgdocs.julialang.org/v1/creating-packages/=
-    q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata_lei_entities.sparql")
+    q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata", "lei_entities.sparql")
     df = @chain q_path query_wikidata()
     df = basic_wikidata_preprocessing(df)
 
@@ -87,7 +87,7 @@ end
 
 function get_company_facts()
     # TODO: swap this out for artifacts https://pkgdocs.julialang.org/v1/creating-packages/=
-    q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata_company_lei_isin_facts.sparql")
+    q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata", "company_lei_isin_facts.sparql")
     df = @chain q_path query_wikidata() @select(
         :subject = :sub["value"], :predicate = :p["value"], :object = :o["value"]
     )
@@ -108,7 +108,7 @@ end
 
 function lookup_company_by_name(company_name)
     try
-        q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata_company_search.sparql")
+        q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata", "company_search.sparql")
         df = @chain q_path query_wikidata(params=Dict("company_name" => company_name))
 
         if nrow(df) == 0
@@ -136,7 +136,7 @@ function lookup_company_by_name(company_name)
 end
 
 function get_full_wikidata_leis()
-    q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata_pure_lei.sparql")
+    q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata", "pure_lei.sparql")
     df = @chain q_path begin
         query_wikidata()
         @transform(:entity = :entity["value"], :entityLabel = :entityLabel["value"], :lei_value = :lei_value["value"])
