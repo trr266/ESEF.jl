@@ -19,7 +19,7 @@ include("lei/gleif_to_wikidata_quickstatements.jl")
 
 include("xbrl/esef_filings_api.jl")
 
-include("local_sparql_db/sparql.jl")
+include("local_sparql_db/sparql_api.jl")
 include("local_sparql_db/oxigraph_server.jl")
 include("local_sparql_db/load_esef_db.jl")
 

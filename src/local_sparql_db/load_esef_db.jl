@@ -6,18 +6,11 @@ using JSON
 using DataFrames
 using DelimitedFiles
 using Arrow
-
+sparql_query -> query_local_db
 function export_concept_count_table()
-    query_item_types = """
-        # Get count of all 'concepts' included in ESEF dataset
-        SELECT (str(?obj) as ?obj_1)  (str(COUNT(?obj)) as ?obj_count) WHERE {
-        ?sub <http://example.org/dimensions.concept> ?obj .
-        } GROUP BY ?obj
-        ORDER BY DESC(?obj_count)
-        LIMIT 1000000
-    """
 
-    query_response = @chain query_item_types sparql_query
+    q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "concept_count.sparql")
+    query_response = @chain q_path query_local_db
 
     df_concepts = DataFrame(; concept=String[], frequency=Int[])
 

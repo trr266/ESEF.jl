@@ -1,22 +1,17 @@
 using HTTP
 using JSON
 using Chain
+using Mustache
 
-function sparql_query(query)
+function query_local_db(sparql_query_file; params=Dict())
     headers = [
         "Content-Type" => "application/sparql-query",
         "Accept" => "application/sparql-results+json",
     ]
     url = "http://localhost:7878/query"
 
-    r = HTTP.request("POST", url, headers, query)
-
-    # Check 200 HTTP status code
-    @assert(r.status == 200)
-
-    raw_data = @chain r.body begin
-        String()
-        JSON.parse()
+    raw_data = @chain url begin
+        patient_post(headers, query)
     end
 
     return raw_data
