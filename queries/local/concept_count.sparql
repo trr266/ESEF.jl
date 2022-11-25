@@ -1,0 +1,6 @@
+# Get count of all 'concepts' included in ESEF dataset
+SELECT (str(?obj) as ?obj_1)  (str(COUNT(?obj)) as ?obj_count) WHERE {
+?sub <http://example.org/dimensions.concept> ?obj .
+} GROUP BY ?obj
+ORDER BY DESC(?obj_count)
+LIMIT 1000000
