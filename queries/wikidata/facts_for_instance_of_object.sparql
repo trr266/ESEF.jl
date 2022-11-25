@@ -1,0 +1,14 @@
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+
+SELECT DISTINCT ?subject ?subjectLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+  {
+    SELECT DISTINCT ?subject WHERE {
+      ?subject p:P31 ?statement0 .
+      ?statement0 ps:P31 wd:{{object}} .
+    }
+  }
+}

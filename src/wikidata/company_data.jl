@@ -57,6 +57,24 @@ function get_facts_for_property(property)
     end
 end
 
+function get_entities_which_are_instance_of_object(object)
+    """
+    Get all entities which are an instance of a given object.
+    """
+    q_path = joinpath(
+        @__DIR__, "..", "..", "queries", "wikidata", "facts_for_instance_of_object.sparql"
+    )
+    return @chain q_path begin
+        query_wikidata_sparql(; params=Dict("object" => object))
+        unpack_value_cols([:subject, :subjectLabel])
+        @transform(
+            :predicate = "http://www.wikidata.org/entity/P31",
+            :object = "http://www.wikidata.org/entity/$object"
+        )
+    end
+end
+
+
 function esef_regulated(isin_country::String, incorporation_country::String)
     esma_countries = get_esma_regulated_countries()
     return (isin_country ∈ esma_countries) || (incorporation_country ∈ esma_countries)
@@ -84,15 +102,25 @@ function search_company_by_name(company_name)
     end
 end
 
+wikidata_accounting_properties = Dict(:lei => "P1278", :isin => "P946")
+wikidata_accounting_objects = Dict(:business => "Q4830453", :enterprise => "Q6881511")
+
 function get_full_wikidata_leis()
-    return get_facts_for_property("P1278")
+    return get_facts_for_property(wikidata_accounting_properties[:lei])
 end
 
-function get_company_facts()
-    # TODO: swap this out for artifacts https://pkgdocs.julialang.org/v1/creating-packages/=
-    q_path = joinpath(
-        @__DIR__, "..", "..", "queries", "wikidata", "company_lei_isin_facts.sparql"
-    )
+function get_full_wikidata_isins()
+    return get_facts_for_property(wikidata_accounting_properties[:isin])
+end
+get_facts_for_property
 
-    return get_full_wikidata_leis()
+function get_accounting_facts()
+    df_properties = Dict(k => get_facts_for_property(v) for (k, v) in wikidata_accounting_properties)
+    
+    df_objects = Dict(k => get_facts_for_property(v) for (k, v) in wikidata_accounting_objects)
+
+    df_properties = reduce(vcat, df_properties)
+    df_objects = reduce(vcat, df_objects)
+
+    return vcat(df_properties, df_objects)
 end

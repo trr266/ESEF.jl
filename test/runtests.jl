@@ -311,3 +311,11 @@ end
     @test nrow(df) == 29
     @test names(df) == ["esma_countries"]
 end
+
+@testset "get_entities_which_are_instance_of_object" begin
+    lookup = Dict(:countries => "Q6256")
+    df = get_entities_which_are_instance_of_object(lookup[:countries])
+    @test nrows(df) > 250
+    @test nrows(df) < 275
+    @test names(df) == [ "subject", "subjectLabel", "predicate", "object"]
+end
