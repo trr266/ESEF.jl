@@ -198,3 +198,15 @@ end
     r = ESEF.patient_post("http://httpbin.org/post", [], "{\"a\": 1}")
     @test r["json"] == Dict("a" => 1)
 end
+
+@testset "Test query_sparql function" begin
+    api_url = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
+    sparql_query_file = joinpath(@__DIR__, "..", "queries", "wikidata", "single_lei_lookup.sparql")
+    df = query_sparql(api_url, sparql_query_file; params=Dict("lei" => "529900NNUPAGGOMPXZ31"))
+    @test names(df) == ["item", "itemLabel"]
+    @test nrow(df) == 1
+
+    df = query_wikidata_sparql(sparql_query_file)
+    @test names(df) == ["item", "itemLabel"]
+    @test nrow(df) == 1
+end
