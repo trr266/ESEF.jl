@@ -210,3 +210,15 @@ end
     @test names(df) == ["item", "itemLabel"]
     @test nrow(df) == 1
 end
+
+@testset "unpack_value_cols" begin
+    df = DataFrame(
+        a = [missing, Dict("value" => 2)],
+        b = [Dict("value" => 3), Dict("value" => 4)],
+    )
+    df = unpack_value_cols(df, [:a, :b])
+    @test df == DataFrame(a = [missing, 2], b = [3, 4])
+end
+
+
+# @passmissing
