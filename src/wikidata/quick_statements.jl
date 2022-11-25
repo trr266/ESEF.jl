@@ -1,17 +1,18 @@
 using Chain
 
 function build_quick_statement(subject::String, predicate::String, object::String)
-    join([subject, predicate, object], "\t")
+    return join([subject, predicate, object], "\t")
 end
 
 function build_quick_statement(subject::String, predicate::Vector, object::Vector)
-    length(predicate) == length(object) || throw(ArgumentError("Predicate and object vectors must be of equal length"))
+    length(predicate) == length(object) ||
+        throw(ArgumentError("Predicate and object vectors must be of equal length"))
 
-    build_quick_statement.((subject,), predicate, object)
+    return build_quick_statement.((subject,), predicate, object)
 end
 
 function build_quick_statement(predicate::Vector, object::Vector)
-    join(["CREATE", build_quick_statement("LAST", predicate, object)...], "\n")
+    return join(["CREATE", build_quick_statement("LAST", predicate, object)...], "\n")
 end
 
 function compose_merge_statement(wd_entity_vector)
@@ -22,4 +23,3 @@ function compose_merge_statement(wd_entity_vector)
 
     return qs_statements
 end
-

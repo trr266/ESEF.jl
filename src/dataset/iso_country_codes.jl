@@ -12,14 +12,9 @@ function get_country_codes()
         HTTP.get()
         _.body
         CSV.read(DataFrame; normalizenames=true)
-        @select(:country = :name,
-                :country_alpha_2 = :alpha_2,
-                :region
-                )
+        @select(:country = :name, :country_alpha_2 = :alpha_2, :region)
         # Rename "United Kingdom of Great Britain and Northern Ireland" to "United Kingdom" for visualization legibility
-        @transform!(
-            @subset(:country_alpha_2 == "GB"),
-            :country = "United Kingdom")
+        @transform!(@subset(:country_alpha_2 == "GB"), :country = "United Kingdom")
         # Country missing...
         push!(["Czechoslovakia", "CS", "Europe"])
     end

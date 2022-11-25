@@ -6,7 +6,7 @@ using Chain
 using DataFrameMacros
 
 function get_lei_data(lei::Vector)
-    get_lei_data(join(lei, ","))
+    return get_lei_data(join(lei, ","))
 end
 
 function get_lei_data(lei::String)

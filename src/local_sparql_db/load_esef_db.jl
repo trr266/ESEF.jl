@@ -8,7 +8,6 @@ using DelimitedFiles
 using Arrow
 sparql_query -> query_local_db
 function export_concept_count_table()
-
     q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "concept_count.sparql")
     query_response = @chain q_path query_local_db
 

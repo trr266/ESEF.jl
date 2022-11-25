@@ -309,5 +309,5 @@ end
 @testset "get_esma_regulated_countries" begin
     df = get_esma_regulated_countries()
     @test nrow(df) == 29
-    @test names(df) == ["ae_homeMemberState"]
+    @test names(df) == ["esma_countries"]
 end

@@ -17,12 +17,7 @@ function get_companies_with_isin_without_lei_wikidata()
     @chain q_path begin
         query_wikidata_sparql()
         unpack_value_cols([
-            :entity,
-            :entityLabel,
-            :isin_value,
-            :country,
-            :countryLabel,
-            :country_alpha_2,
+            :entity, :entityLabel, :isin_value, :country, :countryLabel, :country_alpha_2
         ])
         @transform(:isin_alpha_2 = first(:isin_value, 2))
     end
@@ -34,15 +29,17 @@ end
     q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata", "lei_entities.sparql")
     @chain q_path begin
         query_wikidata_sparql()
-        unpack_value_cols([
-            :country
-            :countryLabel
-            :country_alpha_2
-            :entity
-            :entityLabel
-            :isin_value
-            :lei_value
-        ])
+        unpack_value_cols(
+            [
+                :country
+                :countryLabel
+                :country_alpha_2
+                :entity
+                :entityLabel
+                :isin_value
+                :lei_value
+            ]
+        )
     end
 end
 
@@ -54,7 +51,7 @@ function get_facts_for_property(property)
         @__DIR__, "..", "..", "queries", "wikidata", "facts_for_property.sparql"
     )
     @chain q_path begin
-        query_wikidata_sparql(params=Dict("property" => property))
+        query_wikidata_sparql(; params=Dict("property" => property))
         unpack_value_cols([:subject, :subjectLabel, :object])
         @transform(:predicate = "http://www.wikidata.org/entity/$property")
     end
@@ -70,20 +67,16 @@ function esef_regulated(isin_country::Vector, incorporation_country)
     return any(isin_country .∈ esma_countries) || (incorporation_country ∈ esma_countries)
 end
 
-
 function search_company_by_name(company_name)
     try
         q_path = joinpath(
             @__DIR__, "..", "..", "queries", "wikidata", "company_search.sparql"
         )
         @chain q_path begin
-            query_wikidata_sparql(params=Dict("company_name" => company_name))
+            query_wikidata_sparql(; params=Dict("company_name" => company_name))
             unpack_value_cols([:company, :companyLabel, :companyDescrip])
             @groupby(:company)
-            @combine(
-                :companyLabel = :companyLabel[1],
-                :companyDescrip = :companyDescrip[1]
-            )
+            @combine(:companyLabel = :companyLabel[1], :companyDescrip = :companyDescrip[1])
             @select(:company, :companyLabel, :companyDescrip)
         end
     catch e
@@ -92,7 +85,7 @@ function search_company_by_name(company_name)
 end
 
 function get_full_wikidata_leis()
-    get_facts_for_property("P1278")
+    return get_facts_for_property("P1278")
 end
 
 function get_company_facts()
@@ -101,5 +94,5 @@ function get_company_facts()
         @__DIR__, "..", "..", "queries", "wikidata", "company_lei_isin_facts.sparql"
     )
 
-    get_full_wikidata_leis()
+    return get_full_wikidata_leis()
 end

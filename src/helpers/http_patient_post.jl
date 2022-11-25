@@ -9,8 +9,8 @@ function patient_post(url, headers, body; n_retries=3)
         @repeat n_retries try
             HTTP.post(_, headers, body)
         catch e
-            @delay_retry if http_status(e) < 200 &&
-                            http_status(e) >= 500 end
+            @delay_retry if http_status(e) < 200 && http_status(e) >= 500
+            end
         end
 
         # Parse response
@@ -19,4 +19,3 @@ function patient_post(url, headers, body; n_retries=3)
         JSON.parse()
     end
 end
-

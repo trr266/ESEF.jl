@@ -23,8 +23,9 @@ function query_sparql(api_url, sparql_query_file; params=Dict())
         patient_post(api_url, headers, _)
 
         # Reshape as dataframe
-        [DataFrame(r) for r in _["results"]["bindings"]]
-        reduce(vcat, _, cols=:union)
+        
+        
+        reduce(vcat, _; cols=:union)
     end
 
     return df

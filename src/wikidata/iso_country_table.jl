@@ -10,9 +10,6 @@ using DataFrameMacros
             :country = :country["value"], :country_alpha_2 = :country_alpha_2["value"]
         )
         strip_wikidata_prefix([:country])
-        @select(
-            :country,
-            :country_alpha_2
-        )
+        @select(:country, :country_alpha_2)
     end
 end

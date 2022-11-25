@@ -6,22 +6,24 @@ function generate_quick_statement_from_lei_obj(gleif_lei_obj)
     df_quick_statements = DataFrame(; predicate=String[], object=String[])
 
     # Language-tagged Primary Company Name 
-    push!(df_quick_statements,
+    push!(
+        df_quick_statements,
         [
             gleif_lei_obj["entity_names"][1]["language"],
-            gleif_lei_obj["entity_names"][1]["name"]
-        ])
+            gleif_lei_obj["entity_names"][1]["name"],
+        ],
+    )
 
     # LEI
     push!(df_quick_statements, ["P1278", gleif_lei_obj["lei"]])
-    
+
     # Legal Jurisdiction (ISO Wikidata is memoized)
     @chain get_wikidata_country_iso2_lookup() begin
         @subset(:country_alpha_2 == gleif_lei_obj["country"])
-        _[1,1]
+        _[1, 1]
         @aside push!(df_quick_statements, ["P17", _])
     end
-    
+
     # Associated ISINs
     for i in gleif_lei_obj["isins"]
         push!(df_quick_statements, ["P946", i])
@@ -59,10 +61,10 @@ function import_missing_leis_to_wikidata(leis)
     i = 1
     qs_statements = []
     while i < length(leis)
-        append!(qs_statements, build_wikidata_record(leis[i:min(i+200, length(leis))]))
+        append!(qs_statements, build_wikidata_record(leis[i:min(i + 200, length(leis))]))
         i += 200
     end
-    
+
     qs_statements_str = join(qs_statements, "\n")
 
     open("import_missing_leis_to_wikidata_quick_statement.txt", "w") do f
@@ -76,7 +78,7 @@ function merge_duplicate_wikidata_on_leis()
     dupe_leis = @chain df begin
         _[findall(nonunique(_, :lei_value)), :lei_value]
     end
-    
+
     qs_statements_str = @chain df begin
         @subset(:lei_value ∈ dupe_leis)
         strip_wikidata_prefix([:entity])
@@ -84,8 +86,8 @@ function merge_duplicate_wikidata_on_leis()
         @combine(:merge_statement = compose_merge_statement(:entity))
         join(_[:, :merge_statement], "\n")
     end
-    
+
     open("merge_duplicate_wikidata_on_leis_quick_statement.txt", "w") do f
         write(f, qs_statements_str)
-    end    
+    end
 end
