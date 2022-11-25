@@ -47,9 +47,37 @@ end
 
 @testset "ESMA Regulated Markets" begin
     df = ESEF.get_regulated_markets_esma()
+    @test names(df) == [
+        "_root_",
+        "_version_",
+        "ae_authorisationNotificationDate",
+        "ae_authorisationNotificationDateStr",
+        "ae_authorisationWithdrawalEndDateStr",
+        "ae_branchAddress",
+        "ae_comment",
+        "ae_competentAuthority",
+        "ae_dbId",
+        "ae_entityName",
+        "ae_entityTypeCode",
+        "ae_entityTypeLabel",
+        "ae_headOfficeAddress",
+        "ae_headOfficeLei",
+        "ae_homeMemberState",
+        "ae_hostMemberState",
+        "ae_lastUpdate",
+        "ae_lastUpdateStr",
+        "ae_lei",
+        "ae_micLeiEsmaId",
+        "ae_officeType",
+        "ae_status",
+        "collectorParent",
+        "entity_type",
+        "id",
+        "timestamp",
+        "type_s"
+    ]
     @test nrow(df) >= 100
     @test nrow(df) <= 200
-    @test ncol(df) == 7
 end
 
 
@@ -221,7 +249,7 @@ end
 end
 
 @testset "get_non_lei_isin_companies_wikidata" begin
-    df = get_non_lei_isin_companies_wikidata()
+    df = get_companies_with_isin_without_lei_wikidata()
     names(df) == [ "country"
     "countryLabel"
     "country_alpha_2"
@@ -232,7 +260,7 @@ end
 end
 
 @testset "get_lei_companies_wikidata" begin
-    df = get_lei_companies_wikidata()
+    df = get_companies_with_leis_wikidata()
     @test names(df) == [ "country"
     "countryLabel"
     "country_alpha_2"
@@ -249,6 +277,14 @@ end
     "subjectLabel"
     "predicate"]
     @test nrow(df) > 30000
+
+    df = get_full_wikidata_leis()
+    @test names(df) == ["object"
+    "subject"
+    "subjectLabel"
+    "predicate"]
+    @test nrow(df) > 30000
+
 end
 
 @testset "strip_wikidata_prefix" begin
@@ -261,4 +297,17 @@ end
         a = [missing, "Q2"],
         b = ["Q2", "Q2"]
     ))
+end
+
+@testset "Search company by name" begin
+    @test DataFrame(search_company_by_name("Apple")[1, 1:2]) == DataFrame(
+        company = ["http://www.wikidata.org/entity/Q312"],
+        companyLabel = ["Apple Inc."],
+    )
+end
+
+@testset "get_esma_regulated_countries" begin
+    df = get_esma_regulated_countries()
+    @test nrow(df) == 29
+    @test names(df) == ["ae_homeMemberState"]
 end
