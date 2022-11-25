@@ -3,6 +3,7 @@ using DataFrames
 using Chain
 using JSON
 using Mustache
+using Retry
 
 function query_wikidata(sparql_query_file; params=Dict())
     # TODO: Consider requesting verbose format, parsing based on data type
@@ -13,20 +14,26 @@ function query_wikidata(sparql_query_file; params=Dict())
     ]
     url = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 
-    query_string = @chain sparql_query_file read(String) render(params) HTTP.escapeuri()
+    @chain sparql_query_file begin
+        # Format query string, inject parameters
+        read(String)
+        render(params)
+        HTTP.escapeuri()
+        "query=$(_)"
 
-    body = "query=$query_string"
-
-    r = nothing
-
-    for i in 1:3
-        r = HTTP.post(url, headers, body)
-        if r.status == 200
-            break
+        # Query wikidata sparql endpoint
+        @repeat 3 try
+            HTTP.post(url, headers, _)
+        catch e
+            @delay_retry if http_status(e) < 200 &&
+                            http_status(e) >= 500 end
         end
-    end
 
-    d = JSON.parse(String(r.body))
+        # Parse response
+        _.body
+        String()
+        JSON.parse()
+    end
 
     df = DataFrame()
 
