@@ -193,3 +193,8 @@ end
     @test nrow(df) > 1e5
     @test nrow(df) < 1e7
 end
+
+@testset "Test patient post (with retries)" begin
+    r = ESEF.patient_post("http://httpbin.org/post", [], "{\"a\": 1}")
+    @test r["json"] == Dict("a" => 1)
+end
