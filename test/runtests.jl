@@ -1,7 +1,9 @@
 using ESEF
 
 using DataFrames
+using DataFrameMacros
 using GeoJSON
+using Chain
 using Test
 
 lei = "529900NNUPAGGOMPXZ31"
@@ -28,7 +30,8 @@ end
 
 @testset "LEI query" begin
     lei = "213800AAFUV5PKGQU848"
-    ESEF.get_lei_names(lei) == ("TYMAN PLC", "LUPUS CAPITAL PLC")
+    lei_data = ESEF.get_lei_data(lei)
+    ESEF.get_lei_names(lei_data[1]) == ("TYMAN PLC", "LUPUS CAPITAL PLC")
 end
 
 
@@ -97,7 +100,7 @@ end
 @testset "GLEIF ISIN API" begin
     lei = "529900NNUPAGGOMPXZ31"
     isin_data = ESEF.get_isin_data(lei)
-    @test isin_data == ["DE0007664005", "DE0007664039"]
+    @test sort(isin_data) == ["DE0007664005", "DE0007664039"]
 end
 
 @testset "Wikidata Mini Analysis" begin
@@ -230,11 +233,11 @@ end
 @testset "Test query_sparql function" begin
     api_url = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
     sparql_query_file = joinpath(@__DIR__, "..", "queries", "wikidata", "single_lei_lookup.sparql")
-    df = query_sparql(api_url, sparql_query_file; params=Dict("lei" => "529900NNUPAGGOMPXZ31"))
+    df = ESEF.query_sparql(api_url, sparql_query_file; params=Dict("lei" => "529900NNUPAGGOMPXZ31"))
     @test names(df) == ["item", "itemLabel"]
     @test nrow(df) == 1
 
-    df = query_wikidata_sparql(sparql_query_file)
+    df = ESEF.query_wikidata_sparql(sparql_query_file)
     @test names(df) == ["item", "itemLabel"]
     @test nrow(df) == 1
 end
@@ -244,12 +247,12 @@ end
         a = [missing, Dict("value" => 2)],
         b = [Dict("value" => 3), Dict("value" => 4)],
     )
-    df = unpack_value_cols(df, [:a, :b])
+    df = ESEF.unpack_value_cols(df, [:a, :b])
     @test isequal(df, DataFrame(a = [missing, 2], b = [3, 4]))
 end
 
 @testset "get_non_lei_isin_companies_wikidata" begin
-    df = get_companies_with_isin_without_lei_wikidata()
+    df = ESEF.get_companies_with_isin_without_lei_wikidata()
     names(df) == [ "country"
     "countryLabel"
     "country_alpha_2"
@@ -260,7 +263,7 @@ end
 end
 
 @testset "get_lei_companies_wikidata" begin
-    df = get_companies_with_leis_wikidata()
+    df = ESEF.get_companies_with_leis_wikidata()
     @test names(df) == [ "country"
     "countryLabel"
     "country_alpha_2"
@@ -271,14 +274,14 @@ end
 end
 
 @testset "get_facts_for_property" begin
-    df = get_facts_for_property("P1278")
+    df = ESEF.get_facts_for_property("P1278")
     @test names(df) == ["object"
     "subject"
     "subjectLabel"
     "predicate"]
     @test nrow(df) > 30000
 
-    df = get_full_wikidata_leis()
+    df = ESEF.get_full_wikidata_leis()
     @test names(df) == ["object"
     "subject"
     "subjectLabel"
@@ -293,28 +296,28 @@ end
         b = ["http://www.wikidata.org/entity/Q2", "http://www.wikidata.org/entity/Q2"]
     )
     
-    @test isequal(strip_wikidata_prefix(df, [:a, :b]), DataFrame(
+    @test isequal(ESEF.strip_wikidata_prefix(df, [:a, :b]), DataFrame(
         a = [missing, "Q2"],
         b = ["Q2", "Q2"]
     ))
 end
 
 @testset "Search company by name" begin
-    @test DataFrame(search_company_by_name("Apple")[1, 1:2]) == DataFrame(
+    @test DataFrame(ESEF.search_company_by_name("Apple")[1, 1:2]) == DataFrame(
         company = ["http://www.wikidata.org/entity/Q312"],
         companyLabel = ["Apple Inc."],
     )
 end
 
 @testset "get_esma_regulated_countries" begin
-    df = get_esma_regulated_countries()
+    df = ESEF.get_esma_regulated_countries()
     @test nrow(df) == 29
     @test names(df) == ["esma_countries"]
 end
 
 @testset "get_entities_which_are_instance_of_object" begin
     lookup = Dict(:countries => "Q6256")
-    df = get_entities_which_are_instance_of_object(lookup[:countries])
+    df = ESEF.get_entities_which_are_instance_of_object(lookup[:countries])
     @test nrows(df) > 250
     @test nrows(df) < 275
     @test names(df) == [ "subject", "subjectLabel", "predicate", "object"]

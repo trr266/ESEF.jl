@@ -6,7 +6,7 @@ using Arrow
 function serve_oxigraph(; nt_file_path="", keep_open=false)
 
     # 1. Install oxigraph server via Cargo
-    r_status = try run(`cargo -v`, devnull) catch end
+    r_status = try read(`cargo -v`, String) catch end
     r_status !== nothing || error("Cargo not installed")
     run(`cargo install oxigraph_server`)
 
@@ -32,9 +32,9 @@ function serve_oxigraph(; nt_file_path="", keep_open=false)
     try
         # 4. Test query database
         q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "local_query_test.sparql")
-        query_response = query_local_db_sparql(q_path)
+        df = query_local_db_sparql(q_path)
 
-        n_items = @chain query_response["results"]["bindings"][1]["count"]["value"] parse(
+        n_items = @chain df[!, "count"][1]["value"] parse(
             Int64, _
         )
 
