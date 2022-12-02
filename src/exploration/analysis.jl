@@ -12,7 +12,7 @@ using Statistics
 using URIParser
 
 function esef_wikidata_mini_analysis()
-    df_wikidata_lei = get_lei_companies_wikidata()
+    df_wikidata_lei = get_companies_with_leis_wikidata()
 
     # Add further data checks
     # Check only minimal number of firms where country is missing (e.g. EU, ersatz XC/XY/XS, or incorrect 00, 23)

@@ -262,7 +262,7 @@ end
     "isin_alpha_2"]
 end
 
-@testset "get_lei_companies_wikidata" begin
+@testset "get_companies_with_leis_wikidata" begin
     df = ESEF.get_companies_with_leis_wikidata()
     @test names(df) == [ "country"
     "countryLabel"

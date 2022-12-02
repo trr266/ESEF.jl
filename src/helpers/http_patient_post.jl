@@ -9,7 +9,7 @@ function patient_post(url, headers, body; n_retries=3)
         @repeat n_retries try
             HTTP.post(_, headers, body)
         catch e
-            @delay_retry if http_status(e) < 200 && http_status(e) >= 500
+            @delay_retry if e.status < 200 && e.status >= 500
             end
         end
 
