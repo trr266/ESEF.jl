@@ -13,12 +13,3 @@ https://www.wikidata.org/wiki/Wikidata:Tools/OpenRefine
 ## Use Wikimedia's PAWS service to run OpenRefine in the cloud
 
 https://paws.wmcloud.org/
-
-# TODO: Add LEI information to wikidata!
-# - Legal Form
-# - Address
-# - Aliases
-
-<!-- curl --location --request GET 'https://api.gleif.org/api/v1/lei-records/529900W18LQJJN6SJ336' \
---header 'Accept: application/vnd.api+json' -->
-
