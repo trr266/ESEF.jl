@@ -76,14 +76,14 @@ function merge_duplicate_wikidata_on_leis()
     df = get_full_wikidata_leis()
 
     dupe_leis = @chain df begin
-        _[findall(nonunique(_, :lei_value)), :lei_value]
+        _[findall(nonunique(_, :object)), :object]
     end
 
     qs_statements_str = @chain df begin
-        @subset(:lei_value ∈ dupe_leis)
-        strip_wikidata_prefix([:entity])
-        @groupby(:lei_value)
-        @combine(:merge_statement = compose_merge_statement(:entity))
+        @subset(:object ∈ dupe_leis)
+        strip_wikidata_prefix([:subject])
+        @groupby(:object)
+        @combine(:merge_statement = compose_merge_statement(:subject))
         join(_[:, :merge_statement], "\n")
     end
 

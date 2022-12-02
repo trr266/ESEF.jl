@@ -14,7 +14,6 @@ include("xbrl/xbrl.jl")
 
 include("local_sparql_db/local_sparql_db.jl")
 
-include("exploration/analysis.jl")
 include("exploration/visualizations.jl")
 
 end

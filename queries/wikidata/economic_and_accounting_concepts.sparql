@@ -1,37 +1,36 @@
-SELECT DISTINCT ?item ?itemLabel WHERE {
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE]". }
+SELECT DISTINCT ?concept ?conceptLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en,de,it,fr". }
   {
-    SELECT DISTINCT ?item WHERE {
+    SELECT DISTINCT ?concept WHERE {
       {
-        ?item p:P31 ?statement0.
-        ?statement0 (ps:P31/(wdt:P279*)) wd:Q106905561.
+        ?concept p:P31 ?statement0.
+        ?statement0 (ps:P31) wd:Q106905561.
       }
       UNION
       {
-        ?item p:P31 ?statement1.
-        ?statement1 (ps:P31/(wdt:P279*)) wd:Q21451178.
+        ?concept p:P31 ?statement1.
+        ?statement1 (ps:P31) wd:Q21451178.
       }
       UNION
       {
-        ?item p:P31 ?statement2.
-        ?statement2 (ps:P31/(wdt:P279*)) wd:Q64588497.
+        ?concept p:P31 ?statement2.
+        ?statement2 (ps:P31) wd:Q64588497.
       }
       UNION
       {
-        ?item p:P31 ?statement3.
-        ?statement3 (ps:P31/(wdt:P279*)) wd:Q832161.
+        ?concept p:P31 ?statement3.
+        ?statement3 (ps:P31) wd:Q832161.
       }
       UNION
       {
-        ?item p:P31 ?statement4.
-        ?statement4 (ps:P31/(wdt:P279*)) wd:Q1167393.
+        ?concept p:P31 ?statement4.
+        ?statement4 (ps:P31) wd:Q1167393.
       }
       UNION
       {
-        ?item p:P31 ?statement5.
-        ?statement5 (ps:P31/(wdt:P279*)) wd:Q29028649.
+        ?concept p:P31 ?statement5.
+        ?statement5 (ps:P31) wd:Q29028649.
       }
     }
-    LIMIT 1000000
   }
 }

@@ -59,7 +59,7 @@ function extract_lei_information(lei_data)
     d_out["lei"] = lei_data["id"]
 
     if haskey(lei_data["relationships"], "isins")
-        d_out["isins"] = get_isin_data(d_out["lei"])
+        d_out["isins"] = sort(get_isin_data(d_out["lei"]))
     else
         d_out["isins"] = []
     end

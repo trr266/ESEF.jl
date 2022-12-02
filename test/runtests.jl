@@ -103,36 +103,6 @@ end
     @test sort(isin_data) == ["DE0007664005", "DE0007664039"]
 end
 
-@testset "Wikidata Mini Analysis" begin
-    d_obj = ESEF.esef_wikidata_mini_analysis()
-    @test length(d_obj) == 3
-    @test names(d_obj[1]) == [
-        "key",
-        "entity_name",
-        "country_alpha_2",
-        "date",
-        "filing_key",
-        "error_count",
-        "error_codes",
-        "xbrl_json_path",
-        "country",
-        "region",
-        "wikidata_uri",
-        "company_label",
-        "country_1",
-        "country_uri",
-        "country_alpha_2_1",
-        "isin_id",
-        "isin_alpha_2",
-        "region_1",
-        "isin_country",
-        "isin_region",
-        "esef_regulated"
-    ]
-    @test names(d_obj[2]) == ["key", "entity_name", "company_label"]
-    @test names(d_obj[3]) == ["key", "error_code"]
-end
-
 @testset "truncate_text" begin
     @test ESEF.truncate_text(repeat("a", 100)) == "aaaaaaaaaaaaaaa...aaaaaaaaaaaaaaa"
     @test ESEF.truncate_text(repeat("a", 30)) == "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -206,11 +176,12 @@ end
 
     wd_record = ESEF.build_wikidata_record(lei)
     @test (wd_record ==
-    "CREATE\nLAST\tde\tVOLKSWAGEN AKTIENGESELLSCHAFT\nLAST\tP1278\t529900NNUPAGGOMPXZ31\nLAST\tP17\tQ183\nLAST\tP946\tDE0007664039\nLAST\tP946\tDE0007664005\nLAST\tP31\tQ6881511")
+    "CREATE\nLAST\tde\tVOLKSWAGEN AKTIENGESELLSCHAFT\nLAST\tP1278\t529900NNUPAGGOMPXZ31\nLAST\tP17\tQ183\nLAST\tP946\tDE0007664005\nLAST\tP946\tDE0007664039\nLAST\tP31\tQ6881511")
     
     wd_record_2 = ESEF.build_wikidata_record(lei_list)
     @test length(wd_record_2) == 2
-    @test wd_record_2[2] == "CREATE\nLAST\ten\tAPPLE INC.\nLAST\tP1278\tHWUPKR0MPOU8FGXBT394\nLAST\tP17\tQ30\nLAST\tP946\tUS03785CBC10\nLAST\tP946\tUS03785CJE93\nLAST\tP946\tUS03785CQ351\nLAST\tP946\tUS03785CMB18\nLAST\tP946\tUS03785CQ682\nLAST\tP946\tUS03785CYG76\nLAST\tP946\tUS03785CMF22\nLAST\tP946\tUS037833AS94\nLAST\tP946\tUS03785CTP31\nLAST\tP946\tUS03785CBH07\nLAST\tP946\tUS03785CN614\nLAST\tP946\tUS03785CJS89\nLAST\tP946\tUS03785C3X40\nLAST\tP946\tUS03785C5B02\nLAST\tP946\tUS03785CA322\nLAST\tP31\tQ6881511" 
+    @test (wd_record_2[2] ==
+    "CREATE\nLAST\ten\tAPPLE INC.\nLAST\tP1278\tHWUPKR0MPOU8FGXBT394\nLAST\tP17\tQ30\nLAST\tP946\tUS037833DK32\nLAST\tP946\tUS03785C6L74\nLAST\tP946\tUS03785CCS52\nLAST\tP946\tUS03785CGB81\nLAST\tP946\tUS03785CGN20\nLAST\tP946\tUS03785CHW10\nLAST\tP946\tUS03785CLT35\nLAST\tP946\tUS03785CM541\nLAST\tP946\tUS03785CNG95\nLAST\tP946\tUS03785CPQ59\nLAST\tP946\tUS03785CRJ98\nLAST\tP946\tUS03785CRU44\nLAST\tP946\tUS03785CUD81\nLAST\tP946\tUS03785CUT34\nLAST\tP946\tUS03785CYP75\nLAST\tP31\tQ6881511")
 end
 
 @testset "Check Quick Statements Routines" begin
@@ -218,28 +189,9 @@ end
     @test ESEF.merge_duplicate_wikidata_on_leis() isa Int
 end
 
-@testset "Query Test: get_full_wikidata_leis"
-    df = ESEF.get_full_wikidata_leis()
-    @test names(df) == ["entity", "entityLabel", "lei_value"]
-    @test nrow(df) > 1e5
-    @test nrow(df) < 1e7
-end
-
 @testset "Test patient post (with retries)" begin
     r = ESEF.patient_post("http://httpbin.org/post", [], "{\"a\": 1}")
     @test r["json"] == Dict("a" => 1)
-end
-
-@testset "Test query_sparql function" begin
-    api_url = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
-    sparql_query_file = joinpath(@__DIR__, "..", "queries", "wikidata", "single_lei_lookup.sparql")
-    df = ESEF.query_sparql(api_url, sparql_query_file; params=Dict("lei" => "529900NNUPAGGOMPXZ31"))
-    @test names(df) == ["item", "itemLabel"]
-    @test nrow(df) == 1
-
-    df = ESEF.query_wikidata_sparql(sparql_query_file)
-    @test names(df) == ["item", "itemLabel"]
-    @test nrow(df) == 1
 end
 
 @testset "unpack_value_cols" begin
@@ -260,17 +212,6 @@ end
     "entityLabel"
     "isin_value"
     "isin_alpha_2"]
-end
-
-@testset "get_companies_with_leis_wikidata" begin
-    df = ESEF.get_companies_with_leis_wikidata()
-    @test names(df) == [ "country"
-    "countryLabel"
-    "country_alpha_2"
-    "entity"
-    "entityLabel"
-    "isin_value"
-    "lei_value"]
 end
 
 @testset "get_facts_for_property" begin
@@ -318,7 +259,14 @@ end
 @testset "get_entities_which_are_instance_of_object" begin
     lookup = Dict(:countries => "Q6256")
     df = ESEF.get_entities_which_are_instance_of_object(lookup[:countries])
-    @test nrows(df) > 250
-    @test nrows(df) < 275
-    @test names(df) == [ "subject", "subjectLabel", "predicate", "object"]
+    @test nrow(df) > 250
+    @test nrow(df) < 275
+    @test names(df) == ["subject", "subjectLabel", "predicate", "object"]
+end
+
+@testset "get_wikidata_economic_and_accounting_concepts" begin
+    df = ESEF.get_wikidata_economic_and_accounting_concepts()
+    @test nrow(df) > 1000
+    @test nrow(df) < 5000
+    @test names(df) == ["concept", "conceptLabel"]
 end

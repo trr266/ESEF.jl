@@ -23,25 +23,6 @@ function get_companies_with_isin_without_lei_wikidata()
     end
 end
 
-@memoize function get_companies_with_leis_wikidata()
-    # TODO: fix non-unique entries in Wikidata
-    # TODO: swap this out for artifacts https://pkgdocs.julialang.org/v1/creating-packages/=
-    q_path = joinpath(@__DIR__, "..", "..", "queries", "wikidata", "lei_entities.sparql")
-    @chain q_path begin
-        query_wikidata_sparql()
-        unpack_value_cols(
-            [
-                :country
-                :countryLabel
-                :country_alpha_2
-                :entity
-                :entityLabel
-                :isin_value
-                :lei_value
-            ]
-        )
-    end
-end
 
 function get_facts_for_property(property)
     """
@@ -112,7 +93,6 @@ end
 function get_full_wikidata_isins()
     return get_facts_for_property(wikidata_accounting_properties[:isin])
 end
-get_facts_for_property
 
 function get_accounting_facts()
     df_properties = Dict(k => get_facts_for_property(v) for (k, v) in wikidata_accounting_properties)
@@ -123,4 +103,19 @@ function get_accounting_facts()
     df_objects = reduce(vcat, df_objects)
 
     return vcat(df_properties, df_objects)
+end
+
+function get_wikidata_economic_and_accounting_concepts()
+    """
+    Get all economic concepts from Wikidata.
+    """
+    q_path = joinpath(
+        @__DIR__, "..", "..", "queries", "wikidata", "economic_and_accounting_concepts.sparql"
+    )
+    return @chain q_path begin
+        query_wikidata_sparql()
+        unpack_value_cols([:concept, :conceptLabel])
+        @groupby(:concept)
+        @select(:concept, :conceptLabel)
+    end
 end
