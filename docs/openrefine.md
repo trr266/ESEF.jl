@@ -6,10 +6,10 @@ The first step in connecting ESEF data to Wikidata is checking whether the LEI i
 
 Wikidata serves as the 'single interface for correction' for this project. In contrast to a 'single source of truth', it does not presume that a perfectly accurate dataset is achievable, but that the best dataset comes from the greatest number of eyeballs, free editing access, and disparately motivated 'check and correct' efforts by many individuals.
 
-## Follow the instructions here:
+## Follow the instructions
 
-https://www.wikidata.org/wiki/Wikidata:Tools/OpenRefine
+- [Open Refine](https://www.wikidata.org/wiki/Wikidata:Tools/OpenRefine)
 
 ## Use Wikimedia's PAWS service to run OpenRefine in the cloud
 
-https://paws.wmcloud.org/
+- [Wikimedia Cloud](https://paws.wmcloud.org/)
