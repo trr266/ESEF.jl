@@ -4,11 +4,15 @@ using Chain
 using Arrow
 
 function serve_oxigraph(; nt_file_path="", keep_open=false)
-    # 1. Install oxigraph server
+
+    # 1. Install oxigraph server via Cargo
+    r_status = try run(`cargo -v`, devnull) catch end
+    r_status !== nothing || error("Cargo not installed")
     run(`cargo install oxigraph_server`)
 
     # 2. Download rdf triples data 
     if nt_file_path == ""
+        rm("qlever", force=true, recursive=true)
         run(`git clone https://github.com/ad-freiburg/qlever`)
         run(`xz -d qlever/examples/olympics.nt.xz`)
         nt_file_path = "qlever/examples/olympics.nt"
@@ -27,7 +31,8 @@ function serve_oxigraph(; nt_file_path="", keep_open=false)
 
     try
         # 4. Test query database
-        query_response = @chain "SELECT (COUNT(*) as ?count) WHERE { ?s ?p ?o } LIMIT 10" sparql_query
+        q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "local_query_test.sparql")
+        query_response = query_local_db_sparql(q_path)
 
         n_items = @chain query_response["results"]["bindings"][1]["count"]["value"] parse(
             Int64, _
