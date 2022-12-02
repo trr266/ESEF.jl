@@ -23,7 +23,6 @@ function get_companies_with_isin_without_lei_wikidata()
     end
 end
 
-
 function get_facts_for_property(property)
     """
     Get all facts which use a given property.
@@ -54,7 +53,6 @@ function get_entities_which_are_instance_of_object(object)
         )
     end
 end
-
 
 function esef_regulated(isin_country::String, incorporation_country::String)
     esma_countries = get_esma_regulated_countries()
@@ -95,9 +93,13 @@ function get_full_wikidata_isins()
 end
 
 function get_accounting_facts()
-    df_properties = Dict(k => get_facts_for_property(v) for (k, v) in wikidata_accounting_properties)
-    
-    df_objects = Dict(k => get_facts_for_property(v) for (k, v) in wikidata_accounting_objects)
+    df_properties = Dict(
+        k => get_facts_for_property(v) for (k, v) in wikidata_accounting_properties
+    )
+
+    df_objects = Dict(
+        k => get_facts_for_property(v) for (k, v) in wikidata_accounting_objects
+    )
 
     df_properties = reduce(vcat, df_properties)
     df_objects = reduce(vcat, df_objects)
@@ -110,7 +112,12 @@ function get_wikidata_economic_and_accounting_concepts()
     Get all economic concepts from Wikidata.
     """
     q_path = joinpath(
-        @__DIR__, "..", "..", "queries", "wikidata", "economic_and_accounting_concepts.sparql"
+        @__DIR__,
+        "..",
+        "..",
+        "queries",
+        "wikidata",
+        "economic_and_accounting_concepts.sparql",
     )
     return @chain q_path begin
         query_wikidata_sparql()

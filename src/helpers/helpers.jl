@@ -4,6 +4,3 @@ include("query_sparql.jl")
 include("strip_wikidata_prefix.jl")
 include("truncate_text.jl")
 include("unpack_value_cols.jl")
-
-
-

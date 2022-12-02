@@ -45,7 +45,8 @@ end
     df = ESEF.get_country_codes()
     @test nrow(df) == 250
     @test ncol(df) == 3
-    @test 2 == @chain df @subset((:country == "United Kingdom") | (:country == "Czechoslovakia")) nrow
+    @test 2 ==
+          @chain df @subset((:country == "United Kingdom") | (:country == "Czechoslovakia")) nrow
 end
 
 @testset "ESMA Regulated Markets" begin
@@ -77,7 +78,7 @@ end
         "entity_type",
         "id",
         "timestamp",
-        "type_s"
+        "type_s",
     ]
     @test nrow(df) >= 100
     @test nrow(df) <= 200
@@ -139,7 +140,7 @@ end
         "error_codes",
         "xbrl_json_path",
         "country",
-        "region"
+        "region",
     ]
 
     @test ncol(df_error) == 2
@@ -157,31 +158,40 @@ end
     @test ESEF.build_quick_statement("LAST", "P31", "Q5") == "LAST\tP31\tQ5"
     @test ESEF.build_quick_statement("LAST", "P31", "Q5") == "LAST\tP31\tQ5"
 
-    @test ESEF.build_quick_statement("LAST", ["P31", "P31"], ["Q5", "Q5"]) == ["LAST\tP31\tQ5", "LAST\tP31\tQ5"]
+    @test ESEF.build_quick_statement("LAST", ["P31", "P31"], ["Q5", "Q5"]) ==
+          ["LAST\tP31\tQ5", "LAST\tP31\tQ5"]
 
-    @test ESEF.build_quick_statement(["P31", "P31"], ["Q5", "Q5"]) == "CREATE" *
-                                                                      "\nLAST\tP31\tQ5" *
-                                                                      "\nLAST\tP31\tQ5"
+    @test ESEF.build_quick_statement(["P31", "P31"], ["Q5", "Q5"]) ==
+          "CREATE" * "\nLAST\tP31\tQ5" * "\nLAST\tP31\tQ5"
 end
 
 @testset "generate_quick_statement_from_lei_obj" begin
-    lei_obj = Dict("lei" => "529900NNUPAGGOMPXZ31",
-        "entity_names" => [Dict("name" => "VOLKSWAGEN AKTIENGESELLSCHAFT", "language" => "de")],
+    lei_obj = Dict(
+        "lei" => "529900NNUPAGGOMPXZ31",
+        "entity_names" =>
+            [Dict("name" => "VOLKSWAGEN AKTIENGESELLSCHAFT", "language" => "de")],
         "country" => "DE",
-        "isins" => ["DE0007664039", "DE0007664005"])
+        "isins" => ["DE0007664039", "DE0007664005"],
+    )
 
     qs_test_statement = ESEF.generate_quick_statement_from_lei_obj(lei_obj)
-    @test (qs_test_statement ==
-        "CREATE\nLAST\tde\tVOLKSWAGEN AKTIENGESELLSCHAFT\nLAST\tP1278\t529900NNUPAGGOMPXZ31\nLAST\tP17\tQ183\nLAST\tP946\tDE0007664039\nLAST\tP946\tDE0007664005\nLAST\tP31\tQ6881511")
+    @test (
+        qs_test_statement ==
+        "CREATE\nLAST\tde\tVOLKSWAGEN AKTIENGESELLSCHAFT\nLAST\tP1278\t529900NNUPAGGOMPXZ31\nLAST\tP17\tQ183\nLAST\tP946\tDE0007664039\nLAST\tP946\tDE0007664005\nLAST\tP31\tQ6881511"
+    )
 
     wd_record = ESEF.build_wikidata_record(lei)
-    @test (wd_record ==
-    "CREATE\nLAST\tde\tVOLKSWAGEN AKTIENGESELLSCHAFT\nLAST\tP1278\t529900NNUPAGGOMPXZ31\nLAST\tP17\tQ183\nLAST\tP946\tDE0007664005\nLAST\tP946\tDE0007664039\nLAST\tP31\tQ6881511")
-    
+    @test (
+        wd_record ==
+        "CREATE\nLAST\tde\tVOLKSWAGEN AKTIENGESELLSCHAFT\nLAST\tP1278\t529900NNUPAGGOMPXZ31\nLAST\tP17\tQ183\nLAST\tP946\tDE0007664005\nLAST\tP946\tDE0007664039\nLAST\tP31\tQ6881511"
+    )
+
     wd_record_2 = ESEF.build_wikidata_record(lei_list)
     @test length(wd_record_2) == 2
-    @test (wd_record_2[2] ==
-    "CREATE\nLAST\ten\tAPPLE INC.\nLAST\tP1278\tHWUPKR0MPOU8FGXBT394\nLAST\tP17\tQ30\nLAST\tP946\tUS037833DK32\nLAST\tP946\tUS03785C6L74\nLAST\tP946\tUS03785CCS52\nLAST\tP946\tUS03785CGB81\nLAST\tP946\tUS03785CGN20\nLAST\tP946\tUS03785CHW10\nLAST\tP946\tUS03785CLT35\nLAST\tP946\tUS03785CM541\nLAST\tP946\tUS03785CNG95\nLAST\tP946\tUS03785CPQ59\nLAST\tP946\tUS03785CRJ98\nLAST\tP946\tUS03785CRU44\nLAST\tP946\tUS03785CUD81\nLAST\tP946\tUS03785CUT34\nLAST\tP946\tUS03785CYP75\nLAST\tP31\tQ6881511")
+    @test (
+        wd_record_2[2] ==
+        "CREATE\nLAST\ten\tAPPLE INC.\nLAST\tP1278\tHWUPKR0MPOU8FGXBT394\nLAST\tP17\tQ30\nLAST\tP946\tUS037833DK32\nLAST\tP946\tUS03785C6L74\nLAST\tP946\tUS03785CCS52\nLAST\tP946\tUS03785CGB81\nLAST\tP946\tUS03785CGN20\nLAST\tP946\tUS03785CHW10\nLAST\tP946\tUS03785CLT35\nLAST\tP946\tUS03785CM541\nLAST\tP946\tUS03785CNG95\nLAST\tP946\tUS03785CPQ59\nLAST\tP946\tUS03785CRJ98\nLAST\tP946\tUS03785CRU44\nLAST\tP946\tUS03785CUD81\nLAST\tP946\tUS03785CUT34\nLAST\tP946\tUS03785CYP75\nLAST\tP31\tQ6881511"
+    )
 end
 
 @testset "Check Quick Statements Routines" begin
@@ -205,28 +215,34 @@ end
 
 @testset "get_non_lei_isin_companies_wikidata" begin
     df = ESEF.get_companies_with_isin_without_lei_wikidata()
-    names(df) == [ "country"
-    "countryLabel"
-    "country_alpha_2"
-    "entity"
-    "entityLabel"
-    "isin_value"
-    "isin_alpha_2"]
+    names(df) == [
+        "country"
+        "countryLabel"
+        "country_alpha_2"
+        "entity"
+        "entityLabel"
+        "isin_value"
+        "isin_alpha_2"
+    ]
 end
 
 @testset "get_facts_for_property" begin
     df = ESEF.get_facts_for_property("P1278")
-    @test names(df) == ["object"
-    "subject"
-    "subjectLabel"
-    "predicate"]
+    @test names(df) == [
+        "object"
+        "subject"
+        "subjectLabel"
+        "predicate"
+    ]
     @test nrow(df) > 30000
 
     df = ESEF.get_full_wikidata_leis()
-    @test names(df) == ["object"
-    "subject"
-    "subjectLabel"
-    "predicate"]
+    @test names(df) == [
+        "object"
+        "subject"
+        "subjectLabel"
+        "predicate"
+    ]
     @test nrow(df) > 30000
 
 end
@@ -234,13 +250,13 @@ end
 @testset "strip_wikidata_prefix" begin
     df = DataFrame(
         a = [missing, "http://www.wikidata.org/entity/Q2"],
-        b = ["http://www.wikidata.org/entity/Q2", "http://www.wikidata.org/entity/Q2"]
+        b = ["http://www.wikidata.org/entity/Q2", "http://www.wikidata.org/entity/Q2"],
     )
-    
-    @test isequal(ESEF.strip_wikidata_prefix(df, [:a, :b]), DataFrame(
-        a = [missing, "Q2"],
-        b = ["Q2", "Q2"]
-    ))
+
+    @test isequal(
+        ESEF.strip_wikidata_prefix(df, [:a, :b]),
+        DataFrame(a = [missing, "Q2"], b = ["Q2", "Q2"]),
+    )
 end
 
 @testset "Search company by name" begin
