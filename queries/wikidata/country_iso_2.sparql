@@ -1,7 +1,10 @@
-SELECT DISTINCT ?country ?country_alpha_2 WHERE {
+SELECT DISTINCT ?country ?country_alpha_2 ?countryLabel WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
   {
       ?country p:P297 ?iso_two_letter .
       ?iso_two_letter ps:P297 ?country_alpha_2 .
+      # Filter on country still exists
+      FILTER NOT EXISTS {?country wdt:P31 wd:Q3024240}
+      FILTER NOT EXISTS {?country wdt:P31 wd:Q28171280}
   }
 }

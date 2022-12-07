@@ -40,15 +40,6 @@ end
     @test ESEF.compose_merge_statement(wd_obj) == ["MERGE\tQ1\tQ2", "MERGE\tQ1\tQ3"]
 end
 
-
-@testset "ISO Country Lookup" begin
-    df = ESEF.get_country_codes()
-    @test nrow(df) == 250
-    @test ncol(df) == 3
-    @test 2 ==
-          @chain df @subset((:country == "United Kingdom") | (:country == "Czechoslovakia")) nrow
-end
-
 @testset "ESMA Regulated Markets" begin
     df = ESEF.get_regulated_markets_esma()
     @test names(df) == [
@@ -285,4 +276,11 @@ end
     @test nrow(df) > 1000
     @test nrow(df) < 5000
     @test names(df) == ["concept", "conceptLabel"]
+end
+
+@testset "get_wikidata_country_iso2_lookup" begin
+    df = ESEF.get_wikidata_country_iso2_lookup()
+    @test nrow(df) > 250
+    @test nrow(df) < 275
+    @test names(df) == ["country", "countryLabel", "country_alpha_2"]
 end

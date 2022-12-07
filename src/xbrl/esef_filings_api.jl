@@ -108,12 +108,15 @@ end
         end
     end
 
-    # Add in country names
-    country_lookup = get_country_codes()
-    country_lookup = @chain country_lookup @subset(
-        @passmissing :region == "Europe"; skipmissing=true
-    )
+    df = @transform! df @subset(begin
+        :country_alpha_2 == "CS"
+    end) begin
+        :country_alpha_2 = "CZ"
+    end
 
+    # Add in country names
+    country_lookup = get_wikidata_country_iso2_lookup()
+    # TODO: Make sure Czechia is joined correctly
     df = @chain df begin
         leftjoin(_, country_lookup; on=:country_alpha_2)
     end
@@ -123,9 +126,9 @@ end
 
 function calculate_country_rollup(df)
     country_rollup = @chain df begin
-        @subset(!ismissing(:country))
-        @groupby(:country)
-        @combine(:report_count = length(:country))
+        @subset(!ismissing(:countryLabel))
+        @groupby(:countryLabel)
+        @combine(:report_count = length(:countryLabel))
         @transform(:report_count = coalesce(:report_count, 0))
         @sort(:report_count; rev=true)
     end
