@@ -131,7 +131,7 @@ end
         "error_codes",
         "xbrl_json_path",
         "country",
-        "region",
+        "countryLabel",
     ]
 
     @test ncol(df_error) == 2
