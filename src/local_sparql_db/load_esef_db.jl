@@ -78,9 +78,13 @@ function export_profit_table()
     return df_profit
 end
 
-function build_xbrl_dataframe()
+function build_xbrl_dataframe(; test=false)
     df_xbrl_raw = get_esef_xbrl_filings()[1]
 
+    if test
+        df_xbrl_raw = first(df_xbrl_raw, 5)
+    end
+    
     df_xbrl_raw = @chain df_xbrl_raw begin
         @subset(:xbrl_json_path != nothing)
         @transform(

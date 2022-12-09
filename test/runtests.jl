@@ -287,3 +287,11 @@ end
     @test nrow(df) < 275
     @test names(df) == ["country", "countryLabel", "country_alpha_2"]
 end
+
+@testset "Build RDF Dataframes"
+    df = ESEF.build_xbrl_dataframe()
+    @test names(df) == ["subject", "predicate", "object", "rdf_line"]
+
+    df = ESEF.build_xbrl_dataframe(; test=true)
+    @test names(df) == ["subject", "predicate", "object", "rdf_line"]
+end
