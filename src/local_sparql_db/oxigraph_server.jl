@@ -3,7 +3,12 @@ using JSON
 using Chain
 using Arrow
 
-function serve_oxigraph(; nt_file_path="", keep_open=false)
+function serve_oxigraph(;
+    nt_file_path="", db_path=".cache/esef_oxigraph_data", rebuild_db=true, keep_open=false
+)
+    if rebuild_db
+        rm(db_path; force=true, recursive=true)
+    end
 
     # 1. Install oxigraph server via Cargo
     r_status = try
@@ -23,13 +28,12 @@ function serve_oxigraph(; nt_file_path="", keep_open=false)
 
     # 2. Load data into database
     run(
-        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location esef_oxigraph_data load --file $nt_file_path`,
+        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path load --file $nt_file_path`,
     )
 
     # 3. Spin up database
     oxigraph_process = run(
-        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location esef_oxigraph_data serve`;
-        wait=false,
+        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path serve`; wait=false
     )
 
     try

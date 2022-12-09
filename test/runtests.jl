@@ -218,24 +218,27 @@ end
 end
 
 @testset "get_facts_for_property" begin
-    df = ESEF.get_facts_for_property("P1278")
-    @test names(df) == [
+    wikidata_rdf_export_cols = [
         "object"
         "subject"
         "subjectLabel"
         "predicate"
     ]
+
+    df = ESEF.get_facts_for_property("P1278")
+    @test names(df) == wikidata_rdf_export_cols
     @test nrow(df) > 30000
 
     df = ESEF.get_full_wikidata_leis()
-    @test names(df) == [
-        "object"
-        "subject"
-        "subjectLabel"
-        "predicate"
-    ]
+    @test names(df) == wikidata_rdf_export_cols
     @test nrow(df) > 30000
 
+
+    df = ESEF.get_full_wikidata_leis()
+    @test names(df) == wikidata_rdf_export_cols
+
+    df = ESEF.get_accounting_facts()
+    @test names(df) == wikidata_rdf_export_cols
 end
 
 @testset "strip_wikidata_prefix" begin

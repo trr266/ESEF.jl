@@ -23,7 +23,8 @@ function get_companies_with_isin_without_lei_wikidata()
     end
 end
 
-function get_facts_for_property(property)
+
+@memoize function get_facts_for_property(property)
     """
     Get all facts which use a given property.
     """
@@ -84,6 +85,7 @@ end
 wikidata_accounting_properties = Dict(:lei => "P1278", :isin => "P946")
 wikidata_accounting_objects = Dict(:business => "Q4830453", :enterprise => "Q6881511")
 
+
 function get_full_wikidata_leis()
     return get_facts_for_property(wikidata_accounting_properties[:lei])
 end
@@ -91,6 +93,7 @@ end
 function get_full_wikidata_isins()
     return get_facts_for_property(wikidata_accounting_properties[:isin])
 end
+
 
 function get_accounting_facts()
     df_properties = Dict(
