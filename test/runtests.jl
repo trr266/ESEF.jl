@@ -142,7 +142,7 @@ end
 
     @test ncol(country_rollup) == 2
     @test nrow(country_rollup) == 26
-    @test names(country_rollup) == ["country", "report_count"]
+    @test names(country_rollup) == ["countryLabel", "report_count"]
 end
 
 @testset "Quick Statement Construction" begin
