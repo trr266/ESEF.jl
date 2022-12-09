@@ -30,6 +30,7 @@ Retry = "20febd7b-183b-5ae2-ac4a-720e7ce64774"
 Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 URIParser = "30578b45-9adc-5946-b283-645ec420af67"
+XZ_jll = "ffd25f8a-64ca-5728-b0f7-c24cf3aae800"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
 [compat]

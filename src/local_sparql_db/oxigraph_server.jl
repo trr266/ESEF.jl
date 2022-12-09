@@ -2,6 +2,7 @@ using HTTP
 using JSON
 using Chain
 using Arrow
+using XZ_jll
 
 function serve_oxigraph(;
     nt_file_path="", db_path=".cache/esef_oxigraph_data", rebuild_db=true, keep_open=false
@@ -22,7 +23,7 @@ function serve_oxigraph(;
     if nt_file_path == ""
         rm(".qlever"; force=true, recursive=true)
         run(`git clone https://github.com/ad-freiburg/qlever .qlever`)
-        run(`xz -d .cache/.qlever/examples/olympics.nt.xz`)
+        run(`$(xz()) -d .cache/.qlever/examples/olympics.nt.xz`)
         nt_file_path = ".cache/.qlever/examples/olympics.nt"
     end
 
