@@ -15,10 +15,10 @@ function serve_oxigraph(; nt_file_path="", keep_open=false)
 
     # 2. Download rdf triples data 
     if nt_file_path == ""
-        rm("qlever"; force=true, recursive=true)
-        run(`git clone https://github.com/ad-freiburg/qlever`)
-        run(`xz -d qlever/examples/olympics.nt.xz`)
-        nt_file_path = "qlever/examples/olympics.nt"
+        rm(".qlever"; force=true, recursive=true)
+        run(`git clone https://github.com/ad-freiburg/qlever .qlever`)
+        run(`xz -d .qlever/examples/olympics.nt.xz`)
+        nt_file_path = ".qlever/examples/olympics.nt"
     end
 
     # 2. Load data into database
