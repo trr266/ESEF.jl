@@ -141,7 +141,7 @@ end
     country_rollup = ESEF.calculate_country_rollup(df)
 
     @test ncol(country_rollup) == 2
-    @test nrow(country_rollup) == 26
+    @test nrow(country_rollup) == 29
     @test names(country_rollup) == ["countryLabel", "report_count"]
 end
 
