@@ -22,8 +22,8 @@ function serve_oxigraph(;
     if nt_file_path == ""
         rm(".qlever"; force=true, recursive=true)
         run(`git clone https://github.com/ad-freiburg/qlever .qlever`)
-        run(`xz -d .qlever/examples/olympics.nt.xz`)
-        nt_file_path = ".qlever/examples/olympics.nt"
+        run(`xz -d .cache/.qlever/examples/olympics.nt.xz`)
+        nt_file_path = ".cache/.qlever/examples/olympics.nt"
     end
 
     # 2. Load data into database
