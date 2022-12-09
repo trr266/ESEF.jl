@@ -10,4 +10,6 @@ qlever
 .vscode/
 *.png
 *.svg
-qlever/
+.qlever/
+src/.qlever/
+test/.qlever/
