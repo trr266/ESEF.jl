@@ -15,6 +15,7 @@ function serve_oxigraph(;
         read(`cargo -v`, String)
     catch
     end
+
     r_status !== nothing || error("Cargo not installed")
     run(`cargo install oxigraph_server`)
 
