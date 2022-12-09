@@ -215,7 +215,7 @@ function generate_esef_country_availability_bar()
         xticklabelrotation=pi / 2,
     )
 
-    country_ordered = country_rollup[!, :country]
+    country_ordered = country_rollup[!, :countryLabel]
 
     plt = @chain country_rollup begin
         data(_) *
