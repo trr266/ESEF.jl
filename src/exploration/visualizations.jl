@@ -76,7 +76,7 @@ function generate_esef_report_map()
     country_rollup = calculate_country_rollup(df)
 
     report_count_vect = map(eu_geojson) do geo
-        report_count = (@chain country_rollup @subset(:country == geo.ADMIN) @select(
+        report_count = (@chain country_rollup @subset(:countryLabel == geo.ADMIN) @select(
             :report_count
         ))
         nrow(report_count) > 0 ? report_count[1, 1] : 0
@@ -220,7 +220,7 @@ function generate_esef_country_availability_bar()
     plt = @chain country_rollup begin
         data(_) *
         mapping(
-            :country => renamer((OrderedDict(zip(country_ordered, country_ordered)))...),
+            :countryLabel => renamer((OrderedDict(zip(country_ordered, country_ordered)))...),
             :report_count,
         ) *
         visual(BarPlot; color=trr_266_colors[1])
@@ -277,7 +277,7 @@ function generate_esef_error_country_heatmap()
 
     df_error_country = @chain df_error_wide begin
         @transform(:error_code = truncate_text(:error_code))
-        @groupby(:error_code, :country)
+        @groupby(:error_code, :countryLabel)
         @combine(:error_count = length(:error_code))
         @sort(-:error_count)
     end
@@ -298,7 +298,7 @@ function generate_esef_error_country_heatmap()
 
     fg_error_country_heatmap = @chain df_error_country begin
         data(_) *
-        mapping(:error_code, :country, :error_count) *
+        mapping(:error_code, :countryLabel, :error_count) *
         visual(Heatmap; colormap=color_scale_)
     end
 
@@ -315,9 +315,9 @@ function generate_esef_publication_date_composite()
 
     df_country_date = @chain df begin
         @transform(:month = string(floor(Date(:date), Month)))
-        @groupby(:month, :country)
+        @groupby(:month, :countryLabel)
         @combine(:report_count = length(:country))
-        @subset(!ismissing(:country))
+        @subset(!ismissing(:countryLabel))
         @sort(:report_count)
     end
 
@@ -339,7 +339,7 @@ function generate_esef_publication_date_composite()
 
     fg_country_date = @chain df_country_date begin
         data(_) *
-        mapping(:month, :country, :report_count) *
+        mapping(:month, :countryLabel, :report_count) *
         visual(Heatmap; colormap=color_scale_)
     end
 
