@@ -8,7 +8,7 @@ using Arrow
 
 function export_concept_count_table()
     q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "concept_count.sparql")
-    query_response = @chain q_path query_local_db
+    query_response = @chain q_path query_local_db_sparql
 
     df_concepts = DataFrame(; concept=String[], frequency=Int[])
 
