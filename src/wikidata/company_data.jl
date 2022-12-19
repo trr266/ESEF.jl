@@ -97,18 +97,20 @@ end
 
 function get_accounting_facts()
     df_properties = Dict(
-        k => get_facts_for_property(v) for (k, v) in wikidata_accounting_properties
+        k => ESEF.get_facts_for_property(v) for (k, v) in wikidata_accounting_properties
     )
 
     # TODO: Replace this with wikidata dump & filter!
+    # Issue is that the Wikidata sparql query times out
     # df_objects = Dict(
     #     k => get_entities_which_are_instance_of_object(v) for (k, v) in wikidata_accounting_objects
     # )
 
-    df_properties = reduce(vcat, df_properties)
+    df_properties = reduce(vcat, values(df_properties))
     # df_objects = reduce(vcat, df_objects)
 
-    return vcat(df_properties, df_objects)
+    # return vcat(df_properties, df_objects)
+    return df_properties
 end
 
 function get_wikidata_economic_and_accounting_concepts()
