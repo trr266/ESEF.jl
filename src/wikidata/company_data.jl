@@ -83,7 +83,7 @@ function search_company_by_name(company_name)
 end
 
 wikidata_accounting_properties = Dict(:lei => "P1278", :isin => "P946")
-wikidata_accounting_objects = Dict(:business => "Q4830453", :enterprise => "Q6881511")
+wikidata_accounting_objects = Dict(:business => "Q4830453")#, :enterprise => "Q6881511")
 
 
 function get_full_wikidata_leis()
@@ -100,12 +100,13 @@ function get_accounting_facts()
         k => get_facts_for_property(v) for (k, v) in wikidata_accounting_properties
     )
 
-    df_objects = Dict(
-        k => get_facts_for_property(v) for (k, v) in wikidata_accounting_objects
-    )
+    # TODO: Replace this with wikidata dump & filter!
+    # df_objects = Dict(
+    #     k => get_entities_which_are_instance_of_object(v) for (k, v) in wikidata_accounting_objects
+    # )
 
     df_properties = reduce(vcat, df_properties)
-    df_objects = reduce(vcat, df_objects)
+    # df_objects = reduce(vcat, df_objects)
 
     return vcat(df_properties, df_objects)
 end
