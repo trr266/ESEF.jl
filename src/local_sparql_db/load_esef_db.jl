@@ -154,7 +154,7 @@ function serve_esef_data()
             @aside Arrow.write(".cache/df_esef_rdf.arrow", _)
         end
     else
-        df_esef_rdf = @chain "df_esef_rdf.arrow" begin
+        df_esef_rdf = @chain ".cache/df_esef_rdf.arrow" begin
             Arrow.Table()
             DataFrame()
         end 

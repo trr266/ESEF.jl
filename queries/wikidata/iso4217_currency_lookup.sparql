@@ -1,0 +1,8 @@
+SELECT DISTINCT ?item ?value WHERE {
+  {
+    SELECT DISTINCT ?item ?value WHERE {
+      ?item p:P498 ?statement0.
+      ?statement0 (ps:P498) ?value.
+    }
+  }
+}
