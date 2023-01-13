@@ -4,7 +4,7 @@ using Chain
 using Arrow
 
 function serve_oxigraph(;
-    nt_file_path="", db_path=".cache/esef_oxigraph_data", rebuild_db=true, keep_open=false
+    nt_file_path="", db_path=".cache/esef_oxigraph_data", rebuild_db=false, keep_open=false
 )
     if rebuild_db
         rm(db_path; force=true, recursive=true)

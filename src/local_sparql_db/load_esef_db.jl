@@ -184,7 +184,7 @@ function serve_esef_data()
         writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
     end
 
-    oxigraph_process = serve_oxigraph(; nt_file_path=".cache/oxigraph_rdf.nt", keep_open=true)
+    oxigraph_process = serve_oxigraph(; nt_file_path=".cache/oxigraph_rdf.nt", rebuild_db=true, keep_open=true)
 
     return oxigraph_process
 end
