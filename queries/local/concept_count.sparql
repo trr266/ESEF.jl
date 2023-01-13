@@ -1,5 +1,5 @@
 # Get count of all 'concepts' included in ESEF dataset
-SELECT (str(?obj) as ?obj_1)  (str(COUNT(?obj)) as ?obj_count) WHERE {
+SELECT (str(?obj) as ?concept)  (str(COUNT(?obj)) as ?frequency) WHERE {
 ?sub <http://example.org/dimensions.concept> ?obj .
 } GROUP BY ?obj
 ORDER BY DESC(?obj_count)

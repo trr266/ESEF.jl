@@ -6,3 +6,8 @@ function strip_wikidata_prefix(df, cols)
         cols = @passmissing replace({cols}, "http://www.wikidata.org/entity/" => "")
     )
 end
+
+function rehydrate_uri_entity(uri)
+    HTTP.unescapeuri(replace(uri, "http://example.org/" => ""))
+end
+

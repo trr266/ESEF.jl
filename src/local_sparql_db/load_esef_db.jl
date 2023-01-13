@@ -8,71 +8,36 @@ using Arrow
 
 function export_concept_count_table()
     q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "concept_count.sparql")
-    query_response = @chain q_path query_local_db_sparql
+    results_df = @chain q_path query_local_db_sparql
 
-    df_concepts = DataFrame(; concept=String[], frequency=Int[])
-
-    for i in query_response["results"]["bindings"]
-        push!(
-            df_concepts,
-            [
-                HTTP.unescapeuri(replace(i["obj_1"]["value"], "http://example.org/" => "")),
-                parse(Int, i["obj_count"]["value"]),
-            ],
-        )
+    df_concepts = @chain results_df begin
+        unpack_value_cols([
+            :concept, :frequency
+        ])
+        @transform(:concept = rehydrate_uri_entity(:concept),
+                   :frequency = parse(Int, :frequency))
     end
 
     return df_concepts
 end
 
 function export_profit_table()
-    query_profit_data = """
-        SELECT ?sub ?entity ?period ?unit ?decimals ?value WHERE {
-            ?sub <http://example.org/dimensions.concept> <http://example.org/ifrs-full%3AProfitLoss> .
-            ?sub <http://example.org/dimensions.period> ?period .
-            ?sub <http://example.org/decimals> ?decimals .
-            ?sub <http://example.org/dimensions.entity> ?entity .
-            ?sub <http://example.org/value> ?value .
-            ?sub <http://example.org/dimensions.unit> ?unit .
-        }
-        LIMIT 1000000
-    """
-    query_response = @chain query_profit_data query_local_db
-    query_response = query_response["results"]["bindings"]
+    q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "profit_data.sparql")
+    results_df = @chain q_path query_local_db_sparql
 
     # Check that we didn't hit query row limit
     @assert length(query_response) != 1000000
 
-    # Map query to empty dataframe
-    df_profit = DataFrame(;
-        entity=String[], period=String[], unit=String[], decimals=Int[], value=Float64[]
-    )
-
-    for i in query_response
-        push!(
-            df_profit,
-            [
-                HTTP.unescapeuri(
-                    replace(i["entity"]["value"], "http://example.org/" => "")
-                ),
-                HTTP.unescapeuri(
-                    replace(i["period"]["value"], "http://example.org/" => "")
-                ),
-                HTTP.unescapeuri(replace(i["unit"]["value"], "http://example.org/" => "")),
-                parse(
-                    Int,
-                    HTTP.unescapeuri(
-                        replace(i["decimals"]["value"], "http://example.org/" => "")
-                    ),
-                ),
-                parse(
-                    Float64,
-                    HTTP.unescapeuri(
-                        replace(i["value"]["value"], "http://example.org/" => "")
-                    ),
-                ),
-            ],
-        )
+    df_profit = @chain results_df begin
+        unpack_value_cols([
+            :entity, :period, :unit, :decimals, :value
+        ])
+        @transform(:entity = rehydrate_uri_entity(:entity),
+                   :period = rehydrate_uri_entity(:period),
+                   :unit = rehydrate_uri_entity(:unit),
+                   :value = rehydrate_uri_entity(:value),
+                   :decimals = parse(Int, :decimals),
+                   :value = parse(Int, :value))
     end
 
     return df_profit
@@ -144,13 +109,13 @@ function build_wikidata_dataframe()
     end
 end
 
-function serve_esef_data()
+function serve_esef_data(; test=false)
     if !isdir(".cache")
         mkdir(".cache")
     end
     
     if !isfile(".cache/df_esef_rdf.arrow")
-        df_esef_rdf = @chain build_xbrl_dataframe() begin
+        df_esef_rdf = @chain build_xbrl_dataframe(test=test) begin
             @aside Arrow.write(".cache/df_esef_rdf.arrow", _)
         end
     else
@@ -189,8 +154,8 @@ function serve_esef_data()
     return oxigraph_process
 end
 
-function process_xbrl_filings()
-    oxigraph_process = serve_esef_data()
+function process_xbrl_filings(; test=false)
+    oxigraph_process = serve_esef_data(test=test)
 
     # Rollup of all concepts available from ESEF data using XBRL's filings API
     df_concepts = export_concept_count_table()

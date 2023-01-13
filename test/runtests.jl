@@ -1,4 +1,38 @@
-using ESEF
+using ESEF:
+    build_quick_statement,
+    build_wikidata_record,
+    build_xbrl_dataframe,
+    calculate_country_rollup,
+    compose_merge_statement,
+    export_concept_count_table,
+    export_profit_table,
+    generate_esef_basemap,
+    generate_esef_homepage_viz,
+    generate_quick_statement_from_lei_obj,
+    get_accounting_facts,
+    get_companies_with_isin_without_lei_wikidata,
+    get_entities_which_are_instance_of_object,
+    get_esef_mandate_df,
+    get_esef_xbrl_filings,
+    get_esma_regulated_countries,
+    get_facts_for_property,
+    get_full_wikidata_leis,
+    get_isin_data,
+    get_lei_data,
+    get_lei_names,
+    get_regulated_markets_esma,
+    get_wikidata_country_iso2_lookup,
+    get_wikidata_economic_and_accounting_concepts,
+    import_missing_leis_to_wikidata,
+    merge_duplicate_wikidata_on_leis,
+    patient_post,
+    rehydrate_uri_entity,
+    search_company_by_name,
+    serve_esef_data,
+    serve_oxigraph,
+    strip_wikidata_prefix,
+    truncate_text,
+    unpack_value_cols
 
 using DataFrames
 using DataFrameMacros
@@ -10,7 +44,7 @@ lei = "529900NNUPAGGOMPXZ31"
 lei_list = [lei, "HWUPKR0MPOU8FGXBT394"]
 
 @testset "ESEF.jl Visualizations" begin
-    plots = ESEF.generate_esef_homepage_viz()
+    plots = generate_esef_homepage_viz()
 
     # Check all plots generated
     @test sort([keys(plots)...]) == sort([
@@ -25,23 +59,39 @@ lei_list = [lei, "HWUPKR0MPOU8FGXBT394"]
 end
 
 @testset "oxigraph db load" begin
-    ESEF.serve_oxigraph()
+    serve_oxigraph()
+end
+
+@testset "esef db test load" begin
+    serve_esef_data(test=true)
+end
+
+@testset "wikidata helper" begin
+    rehydrate_uri_entity("http://example.org/ifrs-full%3AAdjustmentsForIncomeTaxExpense") == "ifrs-full:AdjustmentsForIncomeTaxExpense"
+end
+
+@testset "export_concept_count_table" begin
+    export_concept_count_table()
+end
+
+@testset "export_profit_table" begin
+    export_profit_table()
 end
 
 @testset "LEI query" begin
     lei = "213800AAFUV5PKGQU848"
-    lei_data = ESEF.get_lei_data(lei)
-    ESEF.get_lei_names(lei_data[1]) == ("TYMAN PLC", "LUPUS CAPITAL PLC")
+    lei_data = get_lei_data(lei)
+    get_lei_names(lei_data[1]) == ("TYMAN PLC", "LUPUS CAPITAL PLC")
 end
 
 
 @testset "Quick Statement: Merge" begin
     wd_obj = ["Q1", "Q2", "Q3"]
-    @test ESEF.compose_merge_statement(wd_obj) == ["MERGE\tQ1\tQ2", "MERGE\tQ1\tQ3"]
+    @test compose_merge_statement(wd_obj) == ["MERGE\tQ1\tQ2", "MERGE\tQ1\tQ3"]
 end
 
 @testset "ESMA Regulated Markets" begin
-    df = ESEF.get_regulated_markets_esma()
+    df = get_regulated_markets_esma()
     @test names(df) == [
         "_root_",
         "_version_",
@@ -77,31 +127,31 @@ end
 
 
 @testset "GLEIF LEI API" begin
-    lei_data = ESEF.get_lei_data(lei_list)
+    lei_data = get_lei_data(lei_list)
     @test length(lei_data) == 2
     @test [keys(lei_data[1])...] == ["links", "attributes", "id", "type", "relationships"]
 
-    lei_data = ESEF.get_lei_data(lei)
+    lei_data = get_lei_data(lei)
     @test length(lei_data) == 1
     @test [keys(lei_data[1])...] == ["links", "attributes", "id", "type", "relationships"]
 
-    lei_clean = ESEF.extract_lei_information(lei_data[1])
+    lei_clean = extract_lei_information(lei_data[1])
     @test [keys(lei_clean)...] == ["lei", "entity_names", "country", "isins"]
 end
 
 @testset "GLEIF ISIN API" begin
     lei = "529900NNUPAGGOMPXZ31"
-    isin_data = ESEF.get_isin_data(lei)
+    isin_data = get_isin_data(lei)
     @test sort(isin_data) == ["DE0007664005", "DE0007664039"]
 end
 
 @testset "truncate_text" begin
-    @test ESEF.truncate_text(repeat("a", 100)) == "aaaaaaaaaaaaaaa...aaaaaaaaaaaaaaa"
-    @test ESEF.truncate_text(repeat("a", 30)) == "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    @test truncate_text(repeat("a", 100)) == "aaaaaaaaaaaaaaa...aaaaaaaaaaaaaaa"
+    @test truncate_text(repeat("a", 30)) == "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 end
 
 @testset "ESEF Mandate Dataset" begin
-    @test names(ESEF.get_esef_mandate_df()) == [
+    @test names(get_esef_mandate_df()) == [
         "Country",
         "XBRL_Repo",
         "Mandate_Affects_Fiscal_Year_Beginning",
@@ -113,12 +163,12 @@ end
 end
 
 @testset "ESEF Visualizations: European Basemap" begin
-    geo = ESEF.generate_esef_basemap()
+    geo = generate_esef_basemap()
     @test geo isa GeoJSON.FeatureCollection
 end
 
 @testset "ESEF XBRL Filings API" begin
-    df, df_error = ESEF.get_esef_xbrl_filings()
+    df, df_error = get_esef_xbrl_filings()
     @test ncol(df) == 10
     @test nrow(df) > 4000
     @test names(df) == [
@@ -138,7 +188,7 @@ end
     @test nrow(df_error) > 1000
     @test names(df_error) == ["key", "error_code"]
 
-    country_rollup = ESEF.calculate_country_rollup(df)
+    country_rollup = calculate_country_rollup(df)
 
     @test ncol(country_rollup) == 2
     @test nrow(country_rollup) == 29
@@ -146,13 +196,13 @@ end
 end
 
 @testset "Quick Statement Construction" begin
-    @test ESEF.build_quick_statement("LAST", "P31", "Q5") == "LAST\tP31\tQ5"
-    @test ESEF.build_quick_statement("LAST", "P31", "Q5") == "LAST\tP31\tQ5"
+    @test build_quick_statement("LAST", "P31", "Q5") == "LAST\tP31\tQ5"
+    @test build_quick_statement("LAST", "P31", "Q5") == "LAST\tP31\tQ5"
 
-    @test ESEF.build_quick_statement("LAST", ["P31", "P31"], ["Q5", "Q5"]) ==
+    @test build_quick_statement("LAST", ["P31", "P31"], ["Q5", "Q5"]) ==
           ["LAST\tP31\tQ5", "LAST\tP31\tQ5"]
 
-    @test ESEF.build_quick_statement(["P31", "P31"], ["Q5", "Q5"]) ==
+    @test build_quick_statement(["P31", "P31"], ["Q5", "Q5"]) ==
           "CREATE" * "\nLAST\tP31\tQ5" * "\nLAST\tP31\tQ5"
 end
 
@@ -165,31 +215,31 @@ end
         "isins" => ["DE0007664039", "DE0007664005"],
     )
 
-    qs_test_statement = ESEF.generate_quick_statement_from_lei_obj(lei_obj)
+    qs_test_statement = generate_quick_statement_from_lei_obj(lei_obj)
     @test (
         qs_test_statement ==
         "CREATE\nLAST\tde\tVOLKSWAGEN AKTIENGESELLSCHAFT\nLAST\tP1278\t529900NNUPAGGOMPXZ31\nLAST\tP17\tQ183\nLAST\tP946\tDE0007664039\nLAST\tP946\tDE0007664005\nLAST\tP31\tQ6881511"
     )
 
-    wd_record = ESEF.build_wikidata_record(lei)
+    wd_record = build_wikidata_record(lei)
     @test (
         wd_record ==
         "CREATE\nLAST\tde\tVOLKSWAGEN AKTIENGESELLSCHAFT\nLAST\tP1278\t529900NNUPAGGOMPXZ31\nLAST\tP17\tQ183\nLAST\tP946\tDE0007664005\nLAST\tP946\tDE0007664039\nLAST\tP31\tQ6881511"
     )
 
-    wd_record_2 = ESEF.build_wikidata_record(lei_list)
+    wd_record_2 = build_wikidata_record(lei_list)
     @test length(wd_record_2) == 2
     @test occursin("CREATE\nLAST\ten\tAPPLE INC.\nLAST\tP1278\tHWUPKR0MPOU8FGXBT394", wd_record_2[2])
         
 end
 
 @testset "Check Quick Statements Routines" begin
-    @test ESEF.import_missing_leis_to_wikidata(lei_list) isa Int
-    @test ESEF.merge_duplicate_wikidata_on_leis() isa Int
+    @test import_missing_leis_to_wikidata(lei_list) isa Int
+    @test merge_duplicate_wikidata_on_leis() isa Int
 end
 
 @testset "Test patient post (with retries)" begin
-    r = ESEF.patient_post("http://httpbin.org/post", [], "{\"a\": 1}")
+    r = patient_post("http://httpbin.org/post", [], "{\"a\": 1}")
     @test r["json"] == Dict("a" => 1)
 end
 
@@ -198,12 +248,12 @@ end
         a = [missing, Dict("value" => 2)],
         b = [Dict("value" => 3), Dict("value" => 4)],
     )
-    df = ESEF.unpack_value_cols(df, [:a, :b])
+    df = unpack_value_cols(df, [:a, :b])
     @test isequal(df, DataFrame(a = [missing, 2], b = [3, 4]))
 end
 
 @testset "get_non_lei_isin_companies_wikidata" begin
-    df = ESEF.get_companies_with_isin_without_lei_wikidata()
+    df = get_companies_with_isin_without_lei_wikidata()
     names(df) == [
         "country"
         "countryLabel"
@@ -223,19 +273,19 @@ end
         "predicate"
     ]
 
-    df = ESEF.get_facts_for_property("P1278")
+    df = get_facts_for_property("P1278")
     @test names(df) == wikidata_rdf_export_cols
     @test nrow(df) > 30000
 
-    df = ESEF.get_full_wikidata_leis()
+    df = get_full_wikidata_leis()
     @test names(df) == wikidata_rdf_export_cols
     @test nrow(df) > 30000
 
 
-    df = ESEF.get_full_wikidata_leis()
+    df = get_full_wikidata_leis()
     @test names(df) == wikidata_rdf_export_cols
 
-    df = ESEF.get_accounting_facts()
+    df = get_accounting_facts()
     @test names(df) == wikidata_rdf_export_cols
 end
 
@@ -246,50 +296,47 @@ end
     )
 
     @test isequal(
-        ESEF.strip_wikidata_prefix(df, [:a, :b]),
+        strip_wikidata_prefix(df, [:a, :b]),
         DataFrame(a = [missing, "Q2"], b = ["Q2", "Q2"]),
     )
 end
 
 @testset "Search company by name" begin
-    @test DataFrame(ESEF.search_company_by_name("Apple")[1, 1:2]) == DataFrame(
+    @test DataFrame(search_company_by_name("Apple")[1, 1:2]) == DataFrame(
         company = ["http://www.wikidata.org/entity/Q312"],
         companyLabel = ["Apple Inc."],
     )
 end
 
 @testset "get_esma_regulated_countries" begin
-    df = ESEF.get_esma_regulated_countries()
+    df = get_esma_regulated_countries()
     @test nrow(df) == 29
     @test names(df) == ["esma_countries"]
 end
 
 @testset "get_entities_which_are_instance_of_object" begin
     lookup = Dict(:countries => "Q6256")
-    df = ESEF.get_entities_which_are_instance_of_object(lookup[:countries])
+    df = get_entities_which_are_instance_of_object(lookup[:countries])
     @test nrow(df) > 250
     @test nrow(df) < 275
     @test names(df) == ["subject", "subjectLabel", "predicate", "object"]
 end
 
 @testset "get_wikidata_economic_and_accounting_concepts" begin
-    df = ESEF.get_wikidata_economic_and_accounting_concepts()
+    df = get_wikidata_economic_and_accounting_concepts()
     @test nrow(df) > 1000
     @test nrow(df) < 5000
     @test names(df) == ["concept", "conceptLabel"]
 end
 
 @testset "get_wikidata_country_iso2_lookup" begin
-    df = ESEF.get_wikidata_country_iso2_lookup()
+    df = get_wikidata_country_iso2_lookup()
     @test nrow(df) > 250
     @test nrow(df) < 275
     @test names(df) == ["country", "countryLabel", "country_alpha_2"]
 end
 
 @testset "Build RDF Dataframes" begin
-    df = ESEF.build_xbrl_dataframe()
-    @test names(df) == ["subject", "predicate", "object", "rdf_line"]
-
-    df = ESEF.build_xbrl_dataframe(; test=true)
+    df = build_xbrl_dataframe(; test=true)
     @test names(df) == ["subject", "predicate", "object", "rdf_line"]
 end
