@@ -32,7 +32,8 @@ using ESEF:
     serve_oxigraph,
     strip_wikidata_prefix,
     truncate_text,
-    unpack_value_cols
+    unpack_value_cols,
+    query_local_db_sparql
 
 using DataFrames
 using DataFrameMacros
@@ -59,7 +60,7 @@ lei_list = [lei, "HWUPKR0MPOU8FGXBT394"]
 end
 
 @testset "oxigraph db load" begin
-    serve_oxigraph()
+    serve_oxigraph(rebuild_db=true)
 end
 
 @testset "esef db test load" begin
@@ -340,3 +341,5 @@ end
     df = build_xbrl_dataframe(; test=true)
     @test names(df) == ["subject", "predicate", "object", "rdf_line"]
 end
+
+# TODO: add test for query_local_db_sparql and other query functions

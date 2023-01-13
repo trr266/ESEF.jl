@@ -2,6 +2,7 @@ using HTTP
 using JSON
 using Chain
 using Arrow
+using DataFrameMacros
 
 function serve_oxigraph(;
     nt_file_path="", db_path=".cache/esef_oxigraph_data", rebuild_db=false, keep_open=false
@@ -44,16 +45,19 @@ function serve_oxigraph(;
         q_path = joinpath(
             @__DIR__, "..", "..", "queries", "local", "local_query_test.sparql"
         )
-        df = query_local_db_sparql(q_path)
-
-        n_items = @chain df[!, "count"][1]["value"] parse(Int64, _)
+        n_items = @chain q_path begin
+            query_local_db_sparql()
+            unpack_value_cols([:count])
+            @transform(:count = parse(Int64, :count))
+            _[1, "count"]
+        end
 
         # 6. Check that we got the right number of items
-        @assert n_items == countlines(nt_file_path)
-    catch
         @assert n_items == countlines(nt_file_path),
         "Basic integrity check failed, check whether dataset has duplicates!"
+    catch e
         kill(oxigraph_process)
+        e
     finally
         # 7. Stop database
         if keep_open
