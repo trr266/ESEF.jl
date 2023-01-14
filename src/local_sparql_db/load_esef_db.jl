@@ -21,23 +21,24 @@ function export_concept_count_table(oxigraph_port)
     return df_concepts
 end
 
-function export_profit_table()
+function export_profit_table(oxigraph_port)
     q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "profit_data.sparql")
     results_df = @chain q_path query_local_db_sparql(oxigraph_port)
 
     # Check that we didn't hit query row limit
-    @assert length(query_response) != 1000000
+    @assert nrow(results_df) != 1000000
 
     df_profit = @chain results_df begin
         unpack_value_cols([
             :entity, :period, :unit, :decimals, :value
         ])
-        @transform(:entity = rehydrate_uri_entity(:entity),
-                   :period = rehydrate_uri_entity(:period),
-                   :unit = rehydrate_uri_entity(:unit),
-                   :value = rehydrate_uri_entity(:value),
-                   :decimals = parse(Int, :decimals),
-                   :value = parse(Int, :value))
+        @select(
+            :entity = rehydrate_uri_entity(:entity),
+            :period = rehydrate_uri_entity(:period),
+            :unit = rehydrate_uri_entity(:unit),
+            :decimals = parse(Int, rehydrate_uri_entity(:decimals)),
+            :value = parse(Int, rehydrate_uri_entity(:value)),
+        )
     end
 
     return df_profit
@@ -149,7 +150,7 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, test=false)
         writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
     end
 
-    oxigraph_process, oxigraph_port = serve_oxigraph(; nt_file_path=".cache/oxigraph_rdf.nt", rebuild_db=true, keep_open=keep_open)
+    oxigraph_process, oxigraph_port = serve_oxigraph(nt_file_path=".cache/oxigraph_rdf.nt", rebuild_db=true, keep_open=keep_open)
 
     return oxigraph_process, oxigraph_port
 end

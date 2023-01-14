@@ -64,20 +64,24 @@ end
 end
 
 @testset "esef db test load" begin
-    serve_esef_data(test=true, keep_open=true)
+    serve_esef_data(test=true)
 end
 
 @testset "wikidata helper" begin
     rehydrate_uri_entity("http://example.org/ifrs-full%3AAdjustmentsForIncomeTaxExpense") == "ifrs-full:AdjustmentsForIncomeTaxExpense"
 end
 
-@testset "export_concept_count_table" begin
-    conn, port = serve_esef_data(keep_open=true, test=true)
-    export_concept_count_table()
-end
+@testset "export_concept_count_table, export_profit_table" begin
+    process, port = serve_esef_data(test=true, keep_open=true)
+    df = export_concept_count_table(port)
+    @test names(df) == ["concept", "frequency"]
+    @test nrow(df) > 100 & nrow(df) < 500end
 
-@testset "export_profit_table" begin
-    export_profit_table()
+    df = export_profit_table(port)
+    @test names(df) == ["entity", "period", "unit", "decimals", "value"]
+    @test nrow(df) > 50 & nrow(df) < 200
+
+    kill(process)
 end
 
 @testset "LEI query" begin
