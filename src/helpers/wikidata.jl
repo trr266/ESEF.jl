@@ -8,6 +8,5 @@ function strip_wikidata_prefix(df, cols)
 end
 
 function rehydrate_uri_entity(uri)
-    HTTP.unescapeuri(replace(uri, "http://example.org/" => ""))
+    return HTTP.unescapeuri(replace(uri, "http://example.org/" => ""))
 end
-

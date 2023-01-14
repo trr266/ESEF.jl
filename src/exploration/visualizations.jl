@@ -220,7 +220,8 @@ function generate_esef_country_availability_bar()
     plt = @chain country_rollup begin
         data(_) *
         mapping(
-            :countryLabel => renamer((OrderedDict(zip(country_ordered, country_ordered)))...),
+            :countryLabel =>
+                renamer((OrderedDict(zip(country_ordered, country_ordered)))...),
             :report_count,
         ) *
         visual(BarPlot; color=trr_266_colors[1])

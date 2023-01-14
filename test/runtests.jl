@@ -63,11 +63,12 @@ end
 end
 
 @testset "esef db test load" begin
-    serve_esef_data(test=true)
+    serve_esef_data(test = true)
 end
 
 @testset "wikidata helper" begin
-    rehydrate_uri_entity("http://example.org/ifrs-full%3AAdjustmentsForIncomeTaxExpense") == "ifrs-full:AdjustmentsForIncomeTaxExpense"
+    rehydrate_uri_entity("http://example.org/ifrs-full%3AAdjustmentsForIncomeTaxExpense") ==
+    "ifrs-full:AdjustmentsForIncomeTaxExpense"
 end
 
 @testset "export_concept_count_table" begin
@@ -229,8 +230,11 @@ end
 
     wd_record_2 = build_wikidata_record(lei_list)
     @test length(wd_record_2) == 2
-    @test occursin("CREATE\nLAST\ten\tAPPLE INC.\nLAST\tP1278\tHWUPKR0MPOU8FGXBT394", wd_record_2[2])
-        
+    @test occursin(
+        "CREATE\nLAST\ten\tAPPLE INC.\nLAST\tP1278\tHWUPKR0MPOU8FGXBT394",
+        wd_record_2[2],
+    )
+
 end
 
 @testset "Check Quick Statements Routines" begin
@@ -337,6 +341,6 @@ end
 end
 
 @testset "Build RDF Dataframes" begin
-    df = build_xbrl_dataframe(; test=true)
+    df = build_xbrl_dataframe(; test = true)
     @test names(df) == ["subject", "predicate", "object", "rdf_line"]
 end

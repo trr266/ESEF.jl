@@ -26,7 +26,6 @@ function serve_oxigraph(;
         rm(qlever_path; force=true, recursive=true)
         run(`git clone https://github.com/ad-freiburg/qlever $qlever_path`)
         run(`xz -d $nt_file_path.xz`)
-        
     end
 
     # 3. Load data into database

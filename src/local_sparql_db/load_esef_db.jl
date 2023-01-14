@@ -11,11 +11,10 @@ function export_concept_count_table()
     results_df = @chain q_path query_local_db_sparql
 
     df_concepts = @chain results_df begin
-        unpack_value_cols([
-            :concept, :frequency
-        ])
-        @transform(:concept = rehydrate_uri_entity(:concept),
-                   :frequency = parse(Int, :frequency))
+        unpack_value_cols([:concept, :frequency])
+        @transform(
+            :concept = rehydrate_uri_entity(:concept), :frequency = parse(Int, :frequency)
+        )
     end
 
     return df_concepts
@@ -29,15 +28,15 @@ function export_profit_table()
     @assert length(query_response) != 1000000
 
     df_profit = @chain results_df begin
-        unpack_value_cols([
-            :entity, :period, :unit, :decimals, :value
-        ])
-        @transform(:entity = rehydrate_uri_entity(:entity),
-                   :period = rehydrate_uri_entity(:period),
-                   :unit = rehydrate_uri_entity(:unit),
-                   :value = rehydrate_uri_entity(:value),
-                   :decimals = parse(Int, :decimals),
-                   :value = parse(Int, :value))
+        unpack_value_cols([:entity, :period, :unit, :decimals, :value])
+        @transform(
+            :entity = rehydrate_uri_entity(:entity),
+            :period = rehydrate_uri_entity(:period),
+            :unit = rehydrate_uri_entity(:unit),
+            :value = rehydrate_uri_entity(:value),
+            :decimals = parse(Int, :decimals),
+            :value = parse(Int, :value)
+        )
     end
 
     return df_profit
@@ -49,7 +48,7 @@ function build_xbrl_dataframe(; test=false)
     if test
         df_xbrl_raw = first(df_xbrl_raw, 5)
     end
-    
+
     df_xbrl_raw = @chain df_xbrl_raw begin
         @subset(:xbrl_json_path != nothing)
         @transform(
@@ -97,12 +96,11 @@ end
 function build_wikidata_dataframe()
     df_wikidata_rdf = get_accounting_facts()
 
-    df_wikidata_rdf = @chain df_wikidata_rdf begin
+    return df_wikidata_rdf = @chain df_wikidata_rdf begin
         @transform(
             :rdf_line =
                 join(
-                    [format_nt(:subject), format_nt(:predicate) * format_nt(:object)],
-                    " ",
+                    [format_nt(:subject), format_nt(:predicate) * format_nt(:object)], " "
                 ) * " ."
         )
         unique
@@ -113,7 +111,7 @@ function serve_esef_data(; test=false)
     if !isdir(".cache")
         mkdir(".cache")
     end
-    
+
     if !isfile(".cache/df_esef_rdf.arrow")
         df_esef_rdf = @chain build_xbrl_dataframe(test=test) begin
             @aside Arrow.write(".cache/df_esef_rdf.arrow", _)
@@ -122,7 +120,7 @@ function serve_esef_data(; test=false)
         df_esef_rdf = @chain ".cache/df_esef_rdf.arrow" begin
             Arrow.Table()
             DataFrame()
-        end 
+        end
     end
 
     if !isfile(".cache/df_wikidata_rdf.arrow")
@@ -134,7 +132,7 @@ function serve_esef_data(; test=false)
         df_wikidata_rdf = @chain ".cache/df_wikidata_rdf.arrow" begin
             Arrow.Table()
             DataFrame()
-        end 
+        end
     end
 
     nt_file_path = ".cache/oxigraph_rdf.nt"
@@ -149,19 +147,21 @@ function serve_esef_data(; test=false)
         writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
     end
 
-    oxigraph_process = serve_oxigraph(; nt_file_path=".cache/oxigraph_rdf.nt", rebuild_db=true, keep_open=true)
+    oxigraph_process = serve_oxigraph(;
+        nt_file_path=".cache/oxigraph_rdf.nt", rebuild_db=true, keep_open=true
+    )
 
     return oxigraph_process
 end
 
 function process_xbrl_filings(; test=false)
-    oxigraph_process = serve_esef_data(test=test)
+    oxigraph_process = serve_esef_data(; test=test)
 
     # Rollup of all concepts available from ESEF data using XBRL's filings API
     df_concepts = export_concept_count_table()
     @chain df_concepts begin
         @sort(-:frequency)
-        Arrow.write(".cache/concept_df.arrow", _) 
+        Arrow.write(".cache/concept_df.arrow", _)
     end
 
     df_profit = export_profit_table()

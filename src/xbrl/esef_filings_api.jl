@@ -108,9 +108,11 @@ end
         end
     end
 
-    df = @transform! df @subset(begin
-        :country_alpha_2 == "CS"
-    end) begin
+    df = @transform! df @subset(
+        begin
+            :country_alpha_2 == "CS"
+        end
+    ) begin
         :country_alpha_2 = "CZ"
     end
 
