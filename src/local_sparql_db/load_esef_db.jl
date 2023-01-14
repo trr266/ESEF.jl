@@ -11,11 +11,10 @@ function export_concept_count_table(oxigraph_port)
     results_df = @chain q_path query_local_db_sparql(oxigraph_port)
 
     df_concepts = @chain results_df begin
-        unpack_value_cols([
-            :concept, :frequency
-        ])
-        @transform(:concept = rehydrate_uri_entity(:concept),
-                   :frequency = parse(Int, :frequency))
+        unpack_value_cols([:concept, :frequency])
+        @transform(
+            :concept = rehydrate_uri_entity(:concept), :frequency = parse(Int, :frequency)
+        )
     end
 
     return df_concepts
@@ -29,9 +28,7 @@ function export_profit_table(oxigraph_port)
     @assert nrow(results_df) != 1000000
 
     df_profit = @chain results_df begin
-        unpack_value_cols([
-            :entity, :period, :unit, :decimals, :value
-        ])
+        unpack_value_cols([:entity, :period, :unit, :decimals, :value])
         @select(
             :entity = rehydrate_uri_entity(:entity),
             :period = rehydrate_uri_entity(:period),
@@ -50,7 +47,7 @@ function build_xbrl_dataframe(; test=false)
     if test
         df_xbrl_raw = first(df_xbrl_raw, 5)
     end
-    
+
     df_xbrl_raw = @chain df_xbrl_raw begin
         @subset(:xbrl_json_path != nothing)
         @transform(
@@ -98,12 +95,11 @@ end
 function build_wikidata_dataframe()
     df_wikidata_rdf = get_accounting_facts()
 
-    df_wikidata_rdf = @chain df_wikidata_rdf begin
+    return df_wikidata_rdf = @chain df_wikidata_rdf begin
         @transform(
             :rdf_line =
                 join(
-                    [format_nt(:subject), format_nt(:predicate) * format_nt(:object)],
-                    " ",
+                    [format_nt(:subject), format_nt(:predicate) * format_nt(:object)], " "
                 ) * " ."
         )
         unique
@@ -114,7 +110,7 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, test=false)
     if !isdir(".cache")
         mkdir(".cache")
     end
-    
+
     if !isfile(".cache/df_esef_rdf.arrow")
         df_esef_rdf = @chain build_xbrl_dataframe(test=test) begin
             @aside Arrow.write(".cache/df_esef_rdf.arrow", _)
@@ -123,7 +119,7 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, test=false)
         df_esef_rdf = @chain ".cache/df_esef_rdf.arrow" begin
             Arrow.Table()
             DataFrame()
-        end 
+        end
     end
 
     if !isfile(".cache/df_wikidata_rdf.arrow")
@@ -135,7 +131,7 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, test=false)
         df_wikidata_rdf = @chain ".cache/df_wikidata_rdf.arrow" begin
             Arrow.Table()
             DataFrame()
-        end 
+        end
     end
 
     nt_file_path = ".cache/oxigraph_rdf.nt"
@@ -150,7 +146,9 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, test=false)
         writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
     end
 
-    oxigraph_process, oxigraph_port = serve_oxigraph(nt_file_path=".cache/oxigraph_rdf.nt", rebuild_db=true, keep_open=keep_open)
+    oxigraph_process, oxigraph_port = serve_oxigraph(;
+        nt_file_path=".cache/oxigraph_rdf.nt", rebuild_db=true, keep_open=keep_open
+    )
 
     return oxigraph_process, oxigraph_port
 end
@@ -160,13 +158,13 @@ function process_xbrl_filings(; out_dir=".cache/", test=false)
         mkdir(out_dir)
     end
 
-    process, port = serve_esef_data(keep_open=true, test=test)
+    process, port = serve_esef_data(; keep_open=true, test=test)
 
     # Rollup of all concepts available from ESEF data using XBRL's filings API
     df_concepts = export_concept_count_table(port)
     @chain df_concepts begin
         @sort(-:frequency)
-        Arrow.write(out_dir * "/concept_df.arrow", _) 
+        Arrow.write(out_dir * "/concept_df.arrow", _)
     end
 
     df_profit = export_profit_table(port)

@@ -40,13 +40,12 @@ function serve_oxigraph(;
     # 4. Spin up database
     oxigraph_port = rand(7001:7999, 1)[1]
     oxigraph_process = run(
-        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path serve --bind localhost:$oxigraph_port`; wait=false
+        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path serve --bind localhost:$oxigraph_port`;
+        wait=false,
     )
 
     # 5. Test query database
-    q_path = joinpath(
-        @__DIR__, "..", "..", "queries", "local", "local_query_test.sparql"
-    )
+    q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "local_query_test.sparql")
     n_items = @chain q_path begin
         query_local_db_sparql(oxigraph_port)
         unpack_value_cols([:count])
@@ -65,4 +64,3 @@ function serve_oxigraph(;
         return oxigraph_process, oxigraph_port
     end
 end
-

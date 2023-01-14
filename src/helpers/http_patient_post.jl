@@ -10,7 +10,11 @@ function patient_post(url, headers, body; n_retries=3)
             @repeat n_retries try
                 HTTP.post(_, headers, body)
             catch e
-                @delay_retry if (e isa HTTP.ConnectError) || (e isa HTTP.StatusError) && e.status < 200 && e.status >= 500 end
+                @delay_retry if (e isa HTTP.ConnectError) ||
+                    (e isa HTTP.StatusError) &&
+                                e.status < 200 &&
+                                e.status >= 500
+                end
             end
         catch
             error(HTTP.Exceptions.ConnectError("Failed to Connect to Server", 1))

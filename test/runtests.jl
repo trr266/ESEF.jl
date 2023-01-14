@@ -62,23 +62,22 @@ lei_list = [lei, "HWUPKR0MPOU8FGXBT394"]
 end
 
 @testset "oxigraph db load" begin
-    serve_oxigraph(rebuild_db=true)
+    serve_oxigraph(rebuild_db = true)
 end
 
 @testset "esef db test load" begin
-    serve_esef_data(test=true)
+    serve_esef_data(test = true)
 end
 
 @testset "wikidata helper" begin
-    rehydrate_uri_entity("http://example.org/ifrs-full%3AAdjustmentsForIncomeTaxExpense") == "ifrs-full:AdjustmentsForIncomeTaxExpense"
+    rehydrate_uri_entity("http://example.org/ifrs-full%3AAdjustmentsForIncomeTaxExpense") ==
+    "ifrs-full:AdjustmentsForIncomeTaxExpense"
 end
 
 @testset "export_concept_count_table, export_profit_table" begin
-    process, port = serve_esef_data(test=true, keep_open=true)
+    process, port = serve_esef_data(test = true, keep_open = true)
 
-    q_path = joinpath(
-        @__DIR__, "..", "queries", "local", "local_query_test.sparql"
-    )
+    q_path = joinpath(@__DIR__, "..", "queries", "local", "local_query_test.sparql")
     df = query_local_db_sparql(q_path, port)
     d_ = df[!, :count][1]["value"]
     @test names(df) == ["count"]
@@ -247,8 +246,11 @@ end
 
     wd_record_2 = build_wikidata_record(lei_list)
     @test length(wd_record_2) == 2
-    @test occursin("CREATE\nLAST\ten\tAPPLE INC.\nLAST\tP1278\tHWUPKR0MPOU8FGXBT394", wd_record_2[2])
-        
+    @test occursin(
+        "CREATE\nLAST\ten\tAPPLE INC.\nLAST\tP1278\tHWUPKR0MPOU8FGXBT394",
+        wd_record_2[2],
+    )
+
 end
 
 @testset "Check Quick Statements Routines" begin
@@ -355,21 +357,19 @@ end
 end
 
 @testset "Build RDF Dataframes" begin
-    df = build_xbrl_dataframe(; test=true)
+    df = build_xbrl_dataframe(; test = true)
     @test names(df) == ["subject", "predicate", "object", "rdf_line"]
 end
 
 @testset "process_xbrl_filings" begin
     out_dir = ".cache1"
-    rm(out_dir; force=true, recursive=true)
-    process_xbrl_filings(out_dir = out_dir, test=true)
+    rm(out_dir; force = true, recursive = true)
+    process_xbrl_filings(out_dir = out_dir, test = true)
 
     files_ = [".cache/concept_df.arrow", ".cache/profit_df.arrow"]
     for f in files_
         @test isfile(f)
     end
 
-    rm(out_dir; force=true, recursive=true)
+    rm(out_dir; force = true, recursive = true)
 end
-
-
