@@ -27,6 +27,7 @@ using ESEF:
     import_missing_leis_to_wikidata,
     merge_duplicate_wikidata_on_leis,
     patient_post,
+    process_xbrl_filings,
     rehydrate_uri_entity,
     search_company_by_name,
     serve_esef_data,
@@ -74,6 +75,15 @@ end
 
 @testset "export_concept_count_table, export_profit_table" begin
     process, port = serve_esef_data(test=true, keep_open=true)
+
+    q_path = joinpath(
+        @__DIR__, "..", "queries", "local", "local_query_test.sparql"
+    )
+    df = query_local_db_sparql(q_path, port)
+    d_ = df[!, :count][1]["value"]
+    @test names(df) == ["count"]
+    @test nrow(df) == 1
+    @test parse(Int, d_) > 20000 & parse(Int, d_) < 100000
 
     df = export_concept_count_table(port)
     @test names(df) == ["concept", "frequency"]
@@ -349,5 +359,17 @@ end
     @test names(df) == ["subject", "predicate", "object", "rdf_line"]
 end
 
-# TODO: add test for query_local_db_sparql and other query functions
-# TODO: add test for ESEF.process_xbrl_filings(test=true)
+@testset "process_xbrl_filings" begin
+    out_dir = ".cache1"
+    rm(out_dir; force=true, recursive=true)
+    process_xbrl_filings(out_dir = out_dir, test=true)
+
+    files_ = [".cache/concept_df.arrow", ".cache/profit_df.arrow"]
+    for f in files_
+        @test isfile(f)
+    end
+
+    rm(out_dir; force=true, recursive=true)
+end
+
+

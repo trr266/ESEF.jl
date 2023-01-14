@@ -155,21 +155,25 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, test=false)
     return oxigraph_process, oxigraph_port
 end
 
-function process_xbrl_filings(; test=false)
-    oxigraph_process, port = serve_esef_data(test=test)
+function process_xbrl_filings(; out_dir=".cache/", test=false)
+    if !isdir(out_dir)
+        mkdir(out_dir)
+    end
+
+    process, port = serve_esef_data(keep_open=true, test=test)
 
     # Rollup of all concepts available from ESEF data using XBRL's filings API
-    df_concepts = export_concept_count_table()
+    df_concepts = export_concept_count_table(port)
     @chain df_concepts begin
         @sort(-:frequency)
-        Arrow.write(".cache/concept_df.arrow", _) 
+        Arrow.write(out_dir * "/concept_df.arrow", _) 
     end
 
-    df_profit = export_profit_table()
+    df_profit = export_profit_table(port)
 
     @chain df_profit begin
-        Arrow.write(".cache/profit_df.arrow", _)
+        Arrow.write(out_dir * "/profit_df.arrow", _)
     end
 
-    return kill(oxigraph_process)
+    return kill(process)
 end
