@@ -72,6 +72,7 @@ end
 end
 
 @testset "export_concept_count_table" begin
+    conn = serve_esef_data(keep_open=true, test=true)
     export_concept_count_table()
 end
 

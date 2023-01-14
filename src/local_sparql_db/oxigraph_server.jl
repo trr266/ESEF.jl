@@ -22,12 +22,13 @@ function serve_oxigraph(;
 
     # 2. Download rdf triples data 
     if nt_file_path == ""
-        qlever_path = ".cache/qlever/"
-        nt_file_path = "$qlever_path/examples/olympics.nt"
-        rm(qlever_path; force=true, recursive=true)
-        run(`git clone https://github.com/ad-freiburg/qlever $qlever_path`)
-        run(`xz -d $nt_file_path.xz`)
-        
+        qlever_path = ".cache/qlever"
+        if !isdir(qlever_path)
+            nt_file_path = "$qlever_path/examples/olympics.nt"
+            rm(qlever_path; force=true, recursive=true)
+            run(`git clone https://github.com/ad-freiburg/qlever $qlever_path`)
+            run(`xz -d $nt_file_path.xz`)
+        end
     end
 
     # 3. Load data into database
@@ -57,7 +58,7 @@ function serve_oxigraph(;
         "Basic integrity check failed, check whether dataset has duplicates!"
     catch e
         kill(oxigraph_process)
-        e
+        throw(e)
     finally
         # 7. Stop database
         if keep_open

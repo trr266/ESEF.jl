@@ -109,7 +109,7 @@ function build_wikidata_dataframe()
     end
 end
 
-function serve_esef_data(; test=false)
+function serve_esef_data(; keep_open=false, test=false)
     if !isdir(".cache")
         mkdir(".cache")
     end
