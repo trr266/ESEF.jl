@@ -109,7 +109,7 @@ function build_wikidata_dataframe()
     end
 end
 
-function serve_esef_data(; keep_open=false, test=false)
+function serve_esef_data(; keep_open=false, rebuild_db=true, test=false)
     if !isdir(".cache")
         mkdir(".cache")
     end
@@ -149,7 +149,7 @@ function serve_esef_data(; keep_open=false, test=false)
         writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
     end
 
-    oxigraph_process = serve_oxigraph(; nt_file_path=".cache/oxigraph_rdf.nt", rebuild_db=true, keep_open=true)
+    oxigraph_process = serve_oxigraph(; nt_file_path=".cache/oxigraph_rdf.nt", rebuild_db=true, keep_open=keep_open)
 
     return oxigraph_process
 end
