@@ -62,6 +62,7 @@ function serve_oxigraph(;
         return oxigraph_process, oxigraph_port
     else
         kill(oxigraph_process)
+        return oxigraph_process, oxigraph_port
     end
 end
 

@@ -156,7 +156,7 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, test=false)
 end
 
 function process_xbrl_filings(; test=false)
-    oxigraph_process = serve_esef_data(test=test)
+    oxigraph_process, port = serve_esef_data(test=test)
 
     # Rollup of all concepts available from ESEF data using XBRL's filings API
     df_concepts = export_concept_count_table()

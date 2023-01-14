@@ -6,6 +6,7 @@ using ESEF:
     compose_merge_statement,
     export_concept_count_table,
     export_profit_table,
+    extract_lei_information,
     generate_esef_basemap,
     generate_esef_homepage_viz,
     generate_quick_statement_from_lei_obj,
@@ -73,9 +74,10 @@ end
 
 @testset "export_concept_count_table, export_profit_table" begin
     process, port = serve_esef_data(test=true, keep_open=true)
+
     df = export_concept_count_table(port)
     @test names(df) == ["concept", "frequency"]
-    @test nrow(df) > 100 & nrow(df) < 500end
+    @test nrow(df) > 100 & nrow(df) < 500
 
     df = export_profit_table(port)
     @test names(df) == ["entity", "period", "unit", "decimals", "value"]
@@ -348,3 +350,4 @@ end
 end
 
 # TODO: add test for query_local_db_sparql and other query functions
+# TODO: add test for ESEF.process_xbrl_filings(test=true)
