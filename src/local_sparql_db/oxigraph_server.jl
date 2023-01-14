@@ -40,7 +40,7 @@ function serve_oxigraph(;
     # 4. Spin up database
     oxigraph_port = rand(7001:7999, 1)[1]
     oxigraph_process = run(
-        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path --bind 0.0.0.0:$oxigraph_port serve`; wait=false
+        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path serve --bind localhost:$oxigraph_port`; wait=false
     )
 
     # 5. Test query database
