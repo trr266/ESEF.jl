@@ -37,34 +37,34 @@ function serve_oxigraph(;
         `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path load --file $nt_file_path`,
     )
 
+    rand(7001:7999, 1)[1]
     # 4. Spin up database
+    oxigraph_port = rand(7001:7999, 1)[1]
     oxigraph_process = run(
-        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path serve`; wait=false
+        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path serve -—bind localhost:$oxigraph_port`; wait=false
     )
 
-    try
-        # 5. Test query database
-        q_path = joinpath(
-            @__DIR__, "..", "..", "queries", "local", "local_query_test.sparql"
-        )
-        n_items = @chain q_path begin
-            query_local_db_sparql()
-            unpack_value_cols([:count])
-            @transform(:count = parse(Int64, :count))
-            _[1, "count"]
-        end
+    # 5. Test query database
+    q_path = joinpath(
+        @__DIR__, "..", "..", "queries", "local", "local_query_test.sparql"
+    )
+    n_items = @chain q_path begin
+        query_local_db_sparql(oxigraph_port)
+        unpack_value_cols([:count])
+        @transform(:count = parse(Int64, :count))
+        _[1, "count"]
+    end
 
-        # 6. Check that we got the right number of items
-        @assert n_items == countlines(nt_file_path) "Basic integrity check failed, check whether dataset has duplicates!"
-    catch e
-        kill(oxigraph_process)
-        error(e)
+    # 6. Check that we got the right number of items
+    @assert n_items == countlines(nt_file_path) "Basic integrity check failed, check whether dataset has duplicates!"
+
     finally
         # 7. Stop database
         if keep_open
-            return oxigraph_process
+            return oxigraph_process, oxigraph_port
         else
             kill(oxigraph_process)
         end
     end
 end
+

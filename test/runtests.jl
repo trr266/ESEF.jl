@@ -64,7 +64,7 @@ end
 end
 
 @testset "esef db test load" begin
-    serve_esef_data(test=true)
+    serve_esef_data(test=true, keep_open=true)
 end
 
 @testset "wikidata helper" begin
@@ -72,7 +72,7 @@ end
 end
 
 @testset "export_concept_count_table" begin
-    conn = serve_esef_data(keep_open=true, test=true)
+    conn, port = serve_esef_data(keep_open=true, test=true)
     export_concept_count_table()
 end
 

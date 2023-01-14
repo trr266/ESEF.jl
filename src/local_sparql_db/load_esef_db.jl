@@ -6,9 +6,9 @@ using DataFrames
 using DelimitedFiles
 using Arrow
 
-function export_concept_count_table()
+function export_concept_count_table(oxigraph_port)
     q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "concept_count.sparql")
-    results_df = @chain q_path query_local_db_sparql
+    results_df = @chain q_path query_local_db_sparql(oxigraph_port)
 
     df_concepts = @chain results_df begin
         unpack_value_cols([
@@ -23,7 +23,7 @@ end
 
 function export_profit_table()
     q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "profit_data.sparql")
-    results_df = @chain q_path query_local_db_sparql
+    results_df = @chain q_path query_local_db_sparql(oxigraph_port)
 
     # Check that we didn't hit query row limit
     @assert length(query_response) != 1000000
@@ -149,9 +149,9 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, test=false)
         writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
     end
 
-    oxigraph_process = serve_oxigraph(; nt_file_path=".cache/oxigraph_rdf.nt", rebuild_db=true, keep_open=keep_open)
+    oxigraph_process, oxigraph_port = serve_oxigraph(; nt_file_path=".cache/oxigraph_rdf.nt", rebuild_db=true, keep_open=keep_open)
 
-    return oxigraph_process
+    return oxigraph_process, oxigraph_port
 end
 
 function process_xbrl_filings(; test=false)
