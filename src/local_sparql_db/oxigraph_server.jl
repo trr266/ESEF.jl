@@ -37,11 +37,10 @@ function serve_oxigraph(;
         `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path load --file $nt_file_path`,
     )
 
-    rand(7001:7999, 1)[1]
     # 4. Spin up database
     oxigraph_port = rand(7001:7999, 1)[1]
     oxigraph_process = run(
-        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path serve -—bind localhost:$oxigraph_port`; wait=false
+        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path --bind 0.0.0.0:$oxigraph_port serve`; wait=false
     )
 
     # 5. Test query database
@@ -58,13 +57,11 @@ function serve_oxigraph(;
     # 6. Check that we got the right number of items
     @assert n_items == countlines(nt_file_path) "Basic integrity check failed, check whether dataset has duplicates!"
 
-    finally
-        # 7. Stop database
-        if keep_open
-            return oxigraph_process, oxigraph_port
-        else
-            kill(oxigraph_process)
-        end
+    # 7. Stop database
+    if keep_open
+        return oxigraph_process, oxigraph_port
+    else
+        kill(oxigraph_process)
     end
 end
 
