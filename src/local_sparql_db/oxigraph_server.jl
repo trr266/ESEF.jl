@@ -18,7 +18,7 @@ function serve_oxigraph(;
     end
 
     r_status !== nothing || error("Cargo not installed")
-    run(`cargo install oxigraph_server`)
+    run(`REGISTRIES_CRATES_IO_PROTOCOL=sparse cargo install oxigraph_server`)
 
     # 2. Download rdf triples data 
     if nt_file_path == ""
