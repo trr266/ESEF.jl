@@ -7,7 +7,7 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    container: ghcr.io/trr266/ESEF.jl:main
+    container: ghcr.io/trr266/esef-julia:main
     steps:
       - 
         name: Checkout repository
