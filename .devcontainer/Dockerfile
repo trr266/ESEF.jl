@@ -4,7 +4,7 @@ RUN apt-get update && \
     apt-get install -y git
 
 COPY src/ src/
-COPY Project.toml .
+COPY setup_julia.jl Project.toml .
 
 RUN julia --project=. setup_julia.jl
 
