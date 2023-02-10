@@ -5,24 +5,14 @@ on:
   pull_request:
     branches: [main]
 jobs:
-  test:
-    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        version:
-          - '1.9'
-        os:
-          - ubuntu-latest
-        arch:
-          - x64
+  docker:
+    runs-on: ubuntu-latest
+    container: ghcr.io/trr266/ESEF.jl:main
     steps:
-      - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
-        with:
-          version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
-      - uses: julia-actions/cache@v1
-      - uses: julia-actions/julia-buildpkg@v1
-      - uses: julia-actions/julia-runtest@v1
+      - 
+        name: Checkout repository
+        uses: actions/checkout@v3
+      - 
+        name: test Package
+        run: |
+          julia --project=. -e "using Pkg; Pkg.test()"
