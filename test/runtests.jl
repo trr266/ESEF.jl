@@ -74,7 +74,7 @@ end
     "ifrs-full:AdjustmentsForIncomeTaxExpense"
 end
 
-@testset "export_concept_count_table, export_profit_table" begin
+@testset "export_concept_count_table, export_profit_table, export_equity_table, export_total_assets_table" begin
     process, port = serve_esef_data(test = true, keep_open = true)
 
     q_path = joinpath(@__DIR__, "..", "queries", "local", "local_query_test.sparql")
@@ -89,6 +89,58 @@ end
     @test nrow(df) > 100 & nrow(df) < 500
 
     df = export_profit_table(port)
+    @test names(df) == ["entity", "period", "unit", "decimals", "value"]
+    @test nrow(df) > 50 & nrow(df) < 200
+
+
+    df = export_equity_table(port)
+    @test names(df) == ["entity", "period", "unit", "decimals", "value"]
+    @test nrow(df) > 50 & nrow(df) < 2000
+
+
+    df = export_total_assets_table(port)
+    @test names(df) == ["entity", "period", "unit", "decimals", "value"]
+    @test nrow(df) > 2 & nrow(df) < 2000
+
+    kill(process)
+end
+
+@testset "export_concept_count_table, export_equity_table" begin
+    process, port = serve_esef_data(test = true, keep_open = true)
+
+    q_path = joinpath(@__DIR__, "..", "queries", "local", "local_query_test.sparql")
+    df = query_local_db_sparql(q_path, port)
+    d_ = df[!, :count][1]["value"]
+    @test names(df) == ["count"]
+    @test nrow(df) == 1
+    @test parse(Int, d_) > 20000 & parse(Int, d_) < 100000
+
+    df = export_concept_count_table(port)
+    @test names(df) == ["concept", "frequency"]
+    @test nrow(df) > 100 & nrow(df) < 500
+
+    df = export_equity_table(port)
+    @test names(df) == ["entity", "period", "unit", "decimals", "value"]
+    @test nrow(df) > 50 & nrow(df) < 200
+
+    kill(process)
+end
+
+@testset "export_concept_count_table, export_total_assets_table" begin
+    process, port = serve_esef_data(test = true, keep_open = true)
+
+    q_path = joinpath(@__DIR__, "..", "queries", "local", "local_query_test.sparql")
+    df = query_local_db_sparql(q_path, port)
+    d_ = df[!, :count][1]["value"]
+    @test names(df) == ["count"]
+    @test nrow(df) == 1
+    @test parse(Int, d_) > 20000 & parse(Int, d_) < 100000
+
+    df = export_concept_count_table(port)
+    @test names(df) == ["concept", "frequency"]
+    @test nrow(df) > 100 & nrow(df) < 500
+
+    df = export_total_assets_table(port)
     @test names(df) == ["entity", "period", "unit", "decimals", "value"]
     @test nrow(df) > 50 & nrow(df) < 200
 
