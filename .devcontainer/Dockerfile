@@ -5,6 +5,6 @@ RUN apt-get update && \
 
 COPY src/setup_julia.jl .
 
-RUN julia --project=. src/setup_julia.jl
+RUN julia --project=. setup_julia.jl
 
 ENV PATH=/root/.julia/conda/3/bin:$PATH
