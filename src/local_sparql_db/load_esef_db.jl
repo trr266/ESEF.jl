@@ -21,7 +21,7 @@ function export_concept_count_table(oxigraph_port)
 end
 
 function unpack_raw_concept_result(df)
-    df_profit = @chain results_df begin
+    df = @chain df begin
         unpack_value_cols([:entity, :period, :unit, :decimals, :value])
         @select(
             :entity = rehydrate_uri_entity(:entity),
@@ -30,7 +30,8 @@ function unpack_raw_concept_result(df)
             :decimals = parse(Int, rehydrate_uri_entity(:decimals)),
             :value = parse(Int, rehydrate_uri_entity(:value)),
         )
-    end    
+    end
+    return df  
 end
 
 function export_profit_table(oxigraph_port)
