@@ -1,7 +1,10 @@
 FROM julia:1.8
 
 RUN apt-get update && \
-    apt-get install -y build-essential git clang && \
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    apt-get install -y git
 
-RUN julia -e 'using Pkg; Pkg.activate("."); Pkg.instantiate()'
+COPY src/setup_julia.jl .
+
+RUN julia --project=. setup_julia.jl
+
+ENV PATH=/root/.julia/conda/3/bin:$PATH
