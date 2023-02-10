@@ -3,7 +3,8 @@ FROM julia:1.9-rc
 RUN apt-get update && \
     apt-get install -y git
 
-COPY Project.toml src/setup_julia.jl .
+COPY src/ src/
+COPY Project.toml .
 
 RUN julia --project=. setup_julia.jl
 
