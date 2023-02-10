@@ -1,0 +1,9 @@
+SELECT ?sub ?entity ?period ?unit ?decimals ?value WHERE {
+        ?sub <http://example.org/dimensions.concept> <http://example.org/ifrs-full%3AAssets> .
+        ?sub <http://example.org/dimensions.period> ?period .
+        ?sub <http://example.org/decimals> ?decimals .
+        ?sub <http://example.org/dimensions.entity> ?entity .
+        ?sub <http://example.org/value> ?value .
+        ?sub <http://example.org/dimensions.unit> ?unit .
+    }
+LIMIT 1000000
