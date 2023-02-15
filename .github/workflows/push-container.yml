@@ -17,7 +17,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: esef-julia
+  IMAGE_NAME: ESEF.jl
 
 jobs:
   build-and-push-image:
