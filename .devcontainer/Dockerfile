@@ -3,8 +3,10 @@ FROM julia:1.9-rc
 RUN apt-get update && \
     apt-get install -y git
 
-COPY Project.toml src/setup_julia.jl .
+WORKDIR /app
 
-RUN julia --project=. setup_julia.jl
+COPY . /app/
+
+RUN julia --project=. src/setup_julia.jl
 
 ENV PATH=/root/.julia/conda/3/bin:$PATH
