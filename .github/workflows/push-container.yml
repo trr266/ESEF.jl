@@ -17,7 +17,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: esef-jl
+  IMAGE_NAME: trr266/esef-jl
 
 permissions:
   contents: read
