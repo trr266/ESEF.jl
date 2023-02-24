@@ -17,14 +17,15 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ESEF.jl
+  IMAGE_NAME: esef-jl
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
       - 
