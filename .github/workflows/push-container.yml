@@ -12,6 +12,7 @@ on:
     paths:
       - .devcontainer/Dockerfile
       - Project.toml
+      - .github/workflows/push-container.yml
   # to be able to trigger a manual build
   workflow_dispatch:
 
