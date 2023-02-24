@@ -1,10 +1,15 @@
 FROM julia:1.9-rc
 
-RUN apt-get update && \
-    apt-get install -y git
+ENV JULIA_DEPOT_PATH=/opt/julia
+ENV JULIA_PKGDIR=/opt/julia
+ENV CONDA_JL_HOME=/opt/julia/conda
+ENV PATH=/opt/julia/conda/bin:/root/.cargo/bin:$PATH
 
-COPY src/setup_julia.jl .
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -qq install -y git build-essential clang
+WORKDIR /app
 
-RUN julia --project=. setup_julia.jl
+COPY . /app/
 
-ENV PATH=/root/.julia/conda/3/bin:$PATH
+RUN julia --project=test src/setup_julia.jl
+RUN julia --project=. src/setup_julia.jl

@@ -43,6 +43,7 @@ function serve_oxigraph(;
         `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path serve --bind localhost:$oxigraph_port`;
         wait=false,
     )
+    sleep(2)
 
     # 5. Test query database
     q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "local_query_test.sparql")

@@ -12,19 +12,21 @@ on:
     paths:
       - .devcontainer/Dockerfile
       - Project.toml
+      - .github/workflows/push-container.yml
   # to be able to trigger a manual build
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: trr266/esef-jl
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
       - 

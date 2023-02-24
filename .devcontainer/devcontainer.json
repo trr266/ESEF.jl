@@ -3,7 +3,7 @@
     "julialang.language-julia"
   ],
   "runArgs": ["--privileged"],
-  // "dockerFile": "Dockerfile",
-  "image": "ghcr.io/trr266/ESEF.jl:main",
-  "onCreateCommand": "julia --project=. setup_julia.jl"
+//   "dockerFile": "Dockerfile",
+  "onCreateCommand": "julia --project=test -e 'using Pkg; Pkg.instantiate(); Pkg.precompile();'",
+	"image": "ghcr.io/trr266/esef-jl:main"
 }
