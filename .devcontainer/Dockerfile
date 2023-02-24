@@ -12,4 +12,4 @@ WORKDIR /app
 
 COPY . /app/
 
-RUN julia --project=. src/setup_julia.jl
+RUN julia --project=test src/setup_julia.jl
