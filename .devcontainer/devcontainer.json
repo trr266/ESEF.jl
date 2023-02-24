@@ -4,6 +4,6 @@
   ],
   "runArgs": ["--privileged"],
 //   "dockerFile": "Dockerfile",
-  "onCreateCommand": "julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile();'"
+  // "onCreateCommand": "julia --project=test -e 'using Pkg; Pkg.instantiate(); Pkg.precompile();'"
 	"image": "ghcr.io/trr266/esef-jl:main",  
 }
