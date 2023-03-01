@@ -13,7 +13,6 @@ using GeoMakie
 using GeoMakie.GeoJSON
 using HTTP
 using JSON
-using Setfield
 using Statistics
 using URIParser
 using OrderedCollections
