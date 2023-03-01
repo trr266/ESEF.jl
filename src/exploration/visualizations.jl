@@ -122,6 +122,7 @@ function generate_esef_report_map(; is_poster=false)
 end
 
 function generate_esef_mandate_map()
+    background_gray = RGBf(0.85, 0.85, 0.85)
     fontsize_theme = Theme(; fontsize=20, backgroundcolor=background_gray)
     set_theme!(fontsize_theme)
     dest = "+proj=laea"
