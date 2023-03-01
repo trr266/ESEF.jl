@@ -35,7 +35,9 @@ using ESEF:
     strip_wikidata_prefix,
     truncate_text,
     unpack_value_cols,
-    query_local_db_sparql
+    query_local_db_sparql,
+    export_equity_table,
+    export_total_assets_table
 
 using DataFrames
 using DataFrameMacros
