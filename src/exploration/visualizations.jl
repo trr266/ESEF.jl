@@ -13,7 +13,6 @@ using GeoMakie
 using GeoMakie.GeoJSON
 using HTTP
 using JSON
-using Setfield
 using Statistics
 using URIParser
 using OrderedCollections
@@ -50,9 +49,14 @@ function generate_esef_basemap()
     return country_geo
 end
 
-function generate_esef_report_map()
+function generate_esef_report_map(; is_poster=false)
     background_gray = RGBf(0.85, 0.85, 0.85)
-    fontsize_theme = Theme(; fontsize=20, backgroundcolor=background_gray)
+    if is_poster
+        background_color = :transparent
+    else
+        background_color = background_gray
+    end
+    fontsize_theme = Theme(; fontsize=20, backgroundcolor=background_color)
     set_theme!(fontsize_theme)
     dest = "+proj=laea"
     source = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
@@ -68,7 +72,7 @@ function generate_esef_report_map()
         latlims=(35, 72),
         title="ESEF Reports Availability by Country",
         subtitle="(XBRL Repository)",
-        backgroundcolor=background_gray,
+        backgroundcolor=background_color,
     )
 
     eu_geojson = generate_esef_basemap()
@@ -102,15 +106,15 @@ function generate_esef_report_map()
         gd[1, 2];
         colorrange=(0, max_reports),
         colormap=color_scale_,
-        label="ESEF Reports (all-time, per country)",
         height=Relative(0.65),
+        tickformat = (xs -> [x == 600 ? "$(Int(x)) reports" : "$(Int(x))" for x in xs])
     )
-
+    
     hidedecorations!(ga)
     hidespines!(ga)
     colgap!(gd, 1)
     rowgap!(gd, 1)
-
+    
     cbar.tellheight = true
     cbar.width = 50
 
