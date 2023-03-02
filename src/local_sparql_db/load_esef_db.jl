@@ -20,14 +20,8 @@ function export_concept_count_table(oxigraph_port)
     return df_concepts
 end
 
-function export_profit_table(oxigraph_port)
-    q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "profit_data.sparql")
-    results_df = @chain q_path query_local_db_sparql(oxigraph_port)
-
-    # Check that we didn't hit query row limit
-    @assert nrow(results_df) != 1000000
-
-    df_profit = @chain results_df begin
+function unpack_raw_concept_result(df)
+    df = @chain df begin
         unpack_value_cols([:entity, :period, :unit, :decimals, :value])
         @select(
             :entity = rehydrate_uri_entity(:entity),
@@ -37,7 +31,36 @@ function export_profit_table(oxigraph_port)
             :value = parse(Int, rehydrate_uri_entity(:value)),
         )
     end
+    return df  
+end
 
+function export_profit_table(oxigraph_port)
+    q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "profit_data.sparql")
+    results_df = @chain q_path query_local_db_sparql(oxigraph_port)
+
+    # Check that we didn't hit query row limit
+    @assert nrow(results_df) != 1000000
+    df_profit = unpack_raw_concept_result(results_df)
+    return df_profit
+end
+
+function export_total_assets_table(oxigraph_port)
+    q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "total_assets_data.sparql")
+    results_df = @chain q_path query_local_db_sparql(oxigraph_port)
+
+    # Check that we didn't hit query row limit
+    @assert nrow(results_df) != 1000000
+    df_profit = unpack_raw_concept_result(results_df)
+    return df_profit
+end
+
+function export_equity_table(oxigraph_port)
+    q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "equity_data.sparql")
+    results_df = @chain q_path query_local_db_sparql(oxigraph_port)
+
+    # Check that we didn't hit query row limit
+    @assert nrow(results_df) != 1000000
+    df_profit = unpack_raw_concept_result(results_df)
     return df_profit
 end
 
