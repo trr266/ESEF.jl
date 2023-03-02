@@ -416,7 +416,7 @@ end
 end
 
 @testset "process_xbrl_filings" begin
-    out_dir = ".cache1"
+    out_dir = ".cache"
     rm(out_dir; force = true, recursive = true)
     process_xbrl_filings(out_dir = out_dir, test = true)
 
