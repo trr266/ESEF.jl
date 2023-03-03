@@ -107,14 +107,14 @@ function generate_esef_report_map(; is_poster=false)
         colorrange=(0, max_reports),
         colormap=color_scale_,
         height=Relative(0.65),
-        tickformat = (xs -> [x == 600 ? "$(Int(x)) reports" : "$(Int(x))" for x in xs])
+        tickformat=(xs -> [x == 600 ? "$(Int(x)) reports" : "$(Int(x))" for x in xs]),
     )
-    
+
     hidedecorations!(ga)
     hidespines!(ga)
     colgap!(gd, 1)
     rowgap!(gd, 1)
-    
+
     cbar.tellheight = true
     cbar.width = 50
 
