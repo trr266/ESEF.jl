@@ -5,7 +5,6 @@ using Retry
 
 function patient_post(url, headers, body; n_retries=3)
     @chain url begin
-        # Query wikidata sparql url
         try
             @repeat n_retries try
                 HTTP.post(_, headers, body)

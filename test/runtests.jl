@@ -313,7 +313,7 @@ end
 end
 
 @testset "Test patient post (with retries)" begin
-    r = patient_post("http://httpbin.org/post", [], "{\"a\": 1}")
+    r = patient_post("http://httpbin.org/post", [], "{\"a\": 1}"; n_retries=5)
     @test r["json"] == Dict("a" => 1)
 end
 
