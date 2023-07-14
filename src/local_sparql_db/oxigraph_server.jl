@@ -3,6 +3,7 @@ using JSON
 using Chain
 using Arrow
 using DataFrameMacros
+using oxigraph_server_jll
 
 function serve_oxigraph(;
     nt_file_path="", db_path=".cache/esef_oxigraph_data", rebuild_db=false, keep_open=false
@@ -11,16 +12,7 @@ function serve_oxigraph(;
         rm(db_path; force=true, recursive=true)
     end
 
-    # 1. Install oxigraph server via Cargo
-    r_status = try
-        read(`cargo -v`, String)
-    catch
-    end
-
-    r_status !== nothing || error("Cargo not installed")
-    run(addenv(`sh -c "cargo install oxigraph_server"`, ("REGISTRIES_CRATES_IO_PROTOCOL" => "sparse")))
-
-    # 2. Download rdf triples data 
+    # 1. Download rdf triples data 
     if nt_file_path == ""
         qlever_path = ".cache/qlever"
         nt_file_path = "$qlever_path/examples/olympics.nt"
@@ -32,20 +24,20 @@ function serve_oxigraph(;
         end
     end
 
-    # 3. Load data into database
+    # 2. Load data into database
     run(
-        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path load --file $nt_file_path`,
+        `$(oxigraph_server()) --location $db_path load --file $nt_file_path`,
     )
 
-    # 4. Spin up database
+    # 3. Spin up database
     oxigraph_port = rand(7001:7999, 1)[1]
     oxigraph_process = run(
-        `$(ENV["HOME"])/.cargo/bin/oxigraph_server --location $db_path serve --bind localhost:$oxigraph_port`;
+        `$(oxigraph_server()) --location $db_path serve --bind localhost:$oxigraph_port`;
         wait=false,
     )
     sleep(2)
 
-    # 5. Test query database
+    # 4. Test query database
     q_path = joinpath(@__DIR__, "..", "..", "queries", "local", "local_query_test.sparql")
     n_items = @chain q_path begin
         query_local_db_sparql(oxigraph_port)
@@ -54,10 +46,10 @@ function serve_oxigraph(;
         _[1, "count"]
     end
 
-    # 6. Check that we got the right number of items
+    # 5. Check that we got the right number of items
     @assert n_items == countlines(nt_file_path) "Basic integrity check failed, check whether dataset has duplicates!"
 
-    # 7. Stop database
+    # 6. Stop database
     if keep_open
         return oxigraph_process, oxigraph_port
     else
