@@ -4,7 +4,6 @@ using Chain
 using Arrow
 using DataFrameMacros
 using oxigraph_server_jll
-using XZ_jll
 
 function serve_oxigraph(;
     nt_file_path="", db_path=".cache/esef_oxigraph_data", rebuild_db=false, keep_open=false
