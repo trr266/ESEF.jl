@@ -5,7 +5,6 @@ using Arrow
 using DataFrameMacros
 using oxigraph_server_jll
 using XZ_jll
-using Git_jll
 
 function serve_oxigraph(;
     nt_file_path="", db_path=".cache/esef_oxigraph_data", rebuild_db=false, keep_open=false
@@ -21,7 +20,7 @@ function serve_oxigraph(;
 
         if !isdir(qlever_path)
             rm(qlever_path; force=true, recursive=true)
-            run(`$(git()) clone https://github.com/ad-freiburg/qlever $qlever_path`)
+            run(`git clone https://github.com/ad-freiburg/qlever $qlever_path`)
             run(`$(xz()) -d $nt_file_path.xz`)
         end
     end
