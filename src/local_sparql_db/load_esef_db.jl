@@ -31,7 +31,7 @@ function unpack_raw_concept_result(df)
             :value = parse(Int, rehydrate_uri_entity(:value)),
         )
     end
-    return df  
+    return df
 end
 
 function export_profit_table(oxigraph_port)
