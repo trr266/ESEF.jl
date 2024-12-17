@@ -7,7 +7,6 @@ using DataFrameMacros
 using DataFrames
 using Dates
 using Downloads
-using GeoJSON
 using GeoMakie
 using GeoMakie
 using GeoMakie.GeoJSON
@@ -16,6 +15,7 @@ using JSON
 using Statistics
 using URIParser
 using OrderedCollections
+using NaturalEarth
 
 trr_266_colors = ["#1b8a8f", "#ffb43b", "#6ecae2", "#944664"] # petrol, yellow, blue, red
 
@@ -26,27 +26,14 @@ function get_esef_mandate_df()
 end
 
 function generate_esef_basemap()
-    url = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/"
-    country = Downloads.download(url * "ne_50m_admin_0_countries.geojson")
-    country_json = JSON.parse(read(country, String))
-
-    tiny_country = Downloads.download(url * "ne_50m_admin_0_tiny_countries.geojson")
-    tiny_country_json = JSON.parse(read(tiny_country, String))
+    country_geo = DataFrame(naturalearth("admin_0_countries", 50))
+    tiny_country_geo = DataFrame(naturalearth("admin_0_countries", 10))
 
     mandate_df = get_esef_mandate_df()
-
-    malta = [
-        c for c in tiny_country_json["features"] if c["properties"]["ADMIN"] == "Malta"
-    ]
-    europe = [
-        c for c in country_json["features"] if
-        (c["properties"]["ADMIN"] ∈ mandate_df[!, :Country]) &
-        (c["properties"]["ADMIN"] != "Malta")
-    ]
-    country_json["features"] = [malta..., europe...]
-
-    country_geo = GeoJSON.read(JSON.json(country_json))
-    return country_geo
+    mandate_countries = mandate_df[!, :Country]
+    malta = @chain tiny_country_geo @subset(:ADMIN == "Malta")
+    europe = @chain country_geo @subset((:ADMIN ∈ mandate_countries) & (:ADMIN != "Malta"))
+    return vcat(malta, europe)
 end
 
 function generate_esef_report_map(; is_poster=false)
@@ -61,43 +48,37 @@ function generate_esef_report_map(; is_poster=false)
     dest = "+proj=laea"
     source = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 
-    fig = Figure(; resolution=(1000, 500))
+    fig = Figure(; size=(1000, 500), backgroundcolor=background_color)
     gd = fig[1, 1] = GridLayout()
 
     ga = GeoAxis(
         gd[1, 1];
         source=source,
         dest=dest,
-        lonlims=(-28, 35),
-        latlims=(35, 72),
         title="ESEF Reports Availability by Country",
         subtitle="(XBRL Repository)",
-        backgroundcolor=background_color,
     )
-
-    eu_geojson = generate_esef_basemap()
+    ga.limits[] = (-28, 35, 35, 72)
+    eu_geo = generate_esef_basemap()
     df, df_error = get_esef_xbrl_filings()
     country_rollup = calculate_country_rollup(df)
 
-    report_count_vect = map(eu_geojson) do geo
-        report_count = (@chain country_rollup @subset(:countryLabel == geo.ADMIN) @select(
-            :report_count
-        ))
-        nrow(report_count) > 0 ? report_count[1, 1] : 0
-    end
+    eu_geo = leftjoin(eu_geo, country_rollup, on=(:ADMIN => :countryLabel))
+    replace!(eu_geo.report_count, missing => 0)
 
     max_reports = maximum(country_rollup[!, :report_count])
     color_scale_ = range(
         parse(Colorant, "#ffffff"), parse(Colorant, trr_266_colors[2]), max_reports + 1
     )
-    # NOTE: Work around for `ERROR: MethodError: no method matching MultiPolygon(::Point{2, Float32})`
-    for (c, report_count) in zip(eu_geojson, report_count_vect)
+    for row in eachrow(eu_geo)
         poly!(
             ga,
-            GeoMakie.geo2basic(c);
+            row[:geometry];
             strokecolor=RGBf(0.90, 0.90, 0.90),
             strokewidth=1,
-            color=color_scale_[report_count + 1],
+            color=row[:report_count],
+            colorrange=(0, max_reports),
+            colormap=color_scale_,
             label="test",
         )
     end
@@ -111,7 +92,7 @@ function generate_esef_report_map(; is_poster=false)
     )
 
     hidedecorations!(ga)
-    hidespines!(ga)
+    # hidespines!(ga)
     colgap!(gd, 1)
     rowgap!(gd, 1)
 
@@ -128,7 +109,7 @@ function generate_esef_mandate_map()
     dest = "+proj=laea"
     source = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 
-    fig = Figure(; resolution=(1000, 500))
+    fig = Figure(; size=(1000, 500))
     gd = fig[1, 1] = GridLayout()
 
     ga = GeoAxis(
