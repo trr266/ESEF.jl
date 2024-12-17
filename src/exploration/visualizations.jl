@@ -92,7 +92,6 @@ function generate_esef_report_map(; is_poster=false)
     )
 
     hidedecorations!(ga)
-    # hidespines!(ga)
     colgap!(gd, 1)
     rowgap!(gd, 1)
 
@@ -109,48 +108,41 @@ function generate_esef_mandate_map()
     dest = "+proj=laea"
     source = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 
-    fig = Figure(; size=(1000, 500))
+    eu_geo = generate_esef_basemap()
+
+    esef_year_df = get_esef_mandate_df()
+    eu_geo = leftjoin(eu_geo, esef_year_df, on=(:ADMIN => :Country))
+
+    fig = Figure(; size=(1000, 500), backgroundcolor=background_gray)
     gd = fig[1, 1] = GridLayout()
 
     ga = GeoAxis(
         gd[1, 1];
         source=source,
         dest=dest,
-        lonlims=(-28, 35),
-        latlims=(35, 72),
         title="ESEF Mandate by Country",
         subtitle="(Based on Issuer's Fiscal Year Start Date)",
-        backgroundcolor=background_gray,
     )
 
-    eu_geojson = generate_esef_basemap()
-
-    esef_year_df = get_esef_mandate_df()
-
-    mandate_year_vect = map(eu_geojson) do geo
-        mandate_year = (@chain esef_year_df @subset(:Country == geo.ADMIN) @select(
-            :Mandate_Affects_Fiscal_Year_Beginning
-        ))
-        mandate_year[1, 1]
-    end
+    ga.limits[] = (-28, 35, 35, 72)
 
     color_scale_ = parse.((Colorant,), trr_266_colors)
-    # NOTE: Work around for `ERROR: MethodError: no method matching MultiPolygon(::Point{2, Float32})`
-    for (c, mandate_year) in zip(eu_geojson, mandate_year_vect)
+
+    for row in eachrow(eu_geo)
         poly!(
             ga,
-            GeoMakie.geo2basic(c);
+            row[:geometry];
             strokecolor=RGBf(0.90, 0.90, 0.90),
-            strokewidth=1,
-            color=color_scale_[mandate_year - 2019],
-            label=string(mandate_year),
+            strokewidth=0.5,
+            color=row[:Mandate_Affects_Fiscal_Year_Beginning] - 2019,
+            label=string(row[:Mandate_Affects_Fiscal_Year_Beginning]),
+            colorrange=(0, 3),
+            colormap=color_scale_,
         )
     end
 
     axislegend(ga; merge=true)
-
     hidedecorations!(ga)
-    hidespines!(ga)
     colgap!(gd, 1)
     rowgap!(gd, 1)
 
