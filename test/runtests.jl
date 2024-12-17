@@ -7,7 +7,7 @@ using ESEF:
     export_concept_count_table,
     export_profit_table,
     extract_lei_information,
-    generate_esef_basemap,
+    prepare_eu_geodata,
     generate_esef_homepage_viz,
     generate_quick_statement_from_lei_obj,
     get_accounting_facts,
@@ -237,8 +237,8 @@ end
 end
 
 @testset "ESEF Visualizations: European Basemap" begin
-    geo = generate_esef_basemap()
-    @test geo isa GeoJSON.FeatureCollection
+    geo = prepare_eu_geodata()
+    @test geo isa DataFrame
 end
 
 @testset "ESEF XBRL Filings API" begin
@@ -304,7 +304,7 @@ end
     wd_record_2 = build_wikidata_record(lei_list)
     @test length(wd_record_2) == 2
     @test occursin(
-        "CREATE\nLAST\ten\tAPPLE INC.\nLAST\tP1278\tHWUPKR0MPOU8FGXBT394",
+        "CREATE\nLAST\ten\tApple Inc.\nLAST\tP1278\tHWUPKR0MPOU8FGXBT394",
         wd_record_2[2],
     )
 

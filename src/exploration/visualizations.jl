@@ -25,7 +25,7 @@ function get_esef_mandate_df()
     return esef_year_df
 end
 
-function generate_esef_basemap()
+function prepare_eu_geodata()
     country_geo = DataFrame(naturalearth("admin_0_countries", 50))
     tiny_country_geo = DataFrame(naturalearth("admin_0_countries", 10))
 
@@ -59,7 +59,7 @@ function generate_esef_report_map(; is_poster=false)
         subtitle="(XBRL Repository)",
     )
     ga.limits[] = (-28, 35, 35, 72)
-    eu_geo = generate_esef_basemap()
+    eu_geo = prepare_eu_geodata()
     df, df_error = get_esef_xbrl_filings()
     country_rollup = calculate_country_rollup(df)
 
@@ -108,7 +108,7 @@ function generate_esef_mandate_map()
     dest = "+proj=laea"
     source = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 
-    eu_geo = generate_esef_basemap()
+    eu_geo = prepare_eu_geodata()
 
     esef_year_df = get_esef_mandate_df()
     eu_geo = leftjoin(eu_geo, esef_year_df; on=(:ADMIN => :Country))
