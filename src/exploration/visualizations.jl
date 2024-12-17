@@ -63,7 +63,7 @@ function generate_esef_report_map(; is_poster=false)
     df, df_error = get_esef_xbrl_filings()
     country_rollup = calculate_country_rollup(df)
 
-    eu_geo = leftjoin(eu_geo, country_rollup, on=(:ADMIN => :countryLabel))
+    eu_geo = leftjoin(eu_geo, country_rollup; on=(:ADMIN => :countryLabel))
     replace!(eu_geo.report_count, missing => 0)
 
     max_reports = maximum(country_rollup[!, :report_count])
@@ -111,7 +111,7 @@ function generate_esef_mandate_map()
     eu_geo = generate_esef_basemap()
 
     esef_year_df = get_esef_mandate_df()
-    eu_geo = leftjoin(eu_geo, esef_year_df, on=(:ADMIN => :Country))
+    eu_geo = leftjoin(eu_geo, esef_year_df; on=(:ADMIN => :Country))
 
     fig = Figure(; size=(1000, 500), backgroundcolor=background_gray)
     gd = fig[1, 1] = GridLayout()
