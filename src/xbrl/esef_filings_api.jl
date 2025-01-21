@@ -105,7 +105,7 @@ function get_esef_xbrl_filings(url)
     return df, next_url
 end
 
-@memoize function get_esef_xbrl_filings()
+@memoize function get_esef_xbrl_filings(; debug=false)
     # NOTE: use   "links"   => Dict{String, Any}("next"=>"https://filings.xbrl.org/api/filings?page%5Bsize%5D=200&page%5Bnumber%5D=2", to iterate through api
     df = DataFrame()
 
@@ -116,6 +116,9 @@ end
         df_, next_url = get_esef_xbrl_filings(next_url)
         append!(df, df_)
         sleep(1.5)
+        if debug
+            break
+        end
     end
 
     df = @transform! df @subset(
