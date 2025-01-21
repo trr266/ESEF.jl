@@ -44,9 +44,8 @@ end
 # TODO: Extract XBRL facts from items where "xbrl-json" key is populated.
 # 2594003JTXPYO8NOG018/2020-12-31/ESEF/PL/0
 # https://filings.xbrl.org/2594003JTXPYO8NOG018/2020-12-31/ESEF/PL/0/enea-2020-12-31.json
-function get_esef_xbrl_filings(page_num)
-    xbrl_esef_index_endpoint = "https://filings.xbrl.org/api/filings?page[size]=200&page[number]=$page_num"
-    r = HTTP.get(xbrl_esef_index_endpoint)
+function get_esef_xbrl_filings(url)
+    r = HTTP.get(url)
     
     # Check 200 HTTP status code
     @assert(r.status == 200)
@@ -58,7 +57,6 @@ function get_esef_xbrl_filings(page_num)
 
     df = DataFrame()
     row_names = (
-        :key,
         :entity_name,
         :country_alpha_2,
         :date,
@@ -69,36 +67,55 @@ function get_esef_xbrl_filings(page_num)
 
     df_error = DataFrame()
 
+    next_url = nothing
+    if haskey(raw_data["links"], "next")
+        next_url = raw_data["links"]["next"]
+    end
+
     # Parse XBRL ESEF Index Object
     for d_value in raw_data["data"]
         entity_name = split(d_value["relationships"]["entity"]["links"]["related"], "/")[end]
 
-        for attributes in d_value["attributes"]
-            filing_key = attributes["fxo_id"]
-            error_count = attributes["error_count"]
+        attributes = d_value["attributes"]
+        filing_key = attributes["fxo_id"]
+        error_count = attributes["error_count"]
 
-            country = attributes["country"]
-            date = attributes["period_end"]
+        country = attributes["country"]
+        date = attributes["period_end"]
 
-            xbrl_json_path = nothing
+        xbrl_json_path = nothing
 
-            # TODO: Figure out why this errors / make missing-field tolerant
-            if haskey(attributes, "json_url")
-                xbrl_json_path = attributes["json_url"]
-                xbrl_json_path = xbrl_json_path == "" ? nothing : xbrl_json_path
-            end
-
-            new_row = NamedTuple{row_names}([
-                d_key,
-                entity_name,
-                country,
-                date,
-                filing_key,
-                error_count,
-                xbrl_json_path,
-            ])
-            push!(df, new_row; promote=true)
+        # TODO: Figure out why this errors / make missing-field tolerant
+        if haskey(attributes, "json_url")
+            xbrl_json_path = attributes["json_url"]
+            xbrl_json_path = xbrl_json_path == "" ? nothing : xbrl_json_path
         end
+
+        new_row = NamedTuple{row_names}([
+            entity_name,
+            country,
+            date,
+            filing_key,
+            error_count,
+            xbrl_json_path,
+        ])
+        push!(df, new_row; promote=true)
+    end
+
+    return df, next_url
+end
+
+@memoize function get_esef_xbrl_filings()
+    # NOTE: use   "links"   => Dict{String, Any}("next"=>"https://filings.xbrl.org/api/filings?page%5Bsize%5D=200&page%5Bnumber%5D=2", to iterate through api
+    df = DataFrame()
+
+    next_url = "https://filings.xbrl.org/api/filings?page[size]=200"
+
+    while !isnothing(next_url)
+        @info "Fetching: $next_url"
+        df_, next_url = get_esef_xbrl_filings(next_url)
+        append!(df, df_)
+        sleep(1.5)
     end
 
     df = @transform! df @subset(
@@ -116,23 +133,6 @@ function get_esef_xbrl_filings(page_num)
         leftjoin(_, country_lookup; on=:country_alpha_2)
     end
 
-    return df
-end
-
-@memoize function get_esef_xbrl_filings()
-    # NOTE: use   "links"   => Dict{String, Any}("next"=>"https://filings.xbrl.org/api/filings?page%5Bsize%5D=200&page%5Bnumber%5D=2", to iterate through api
-    df = DataFrame()
-
-    for i in 1:100
-        df_ = get_esef_xbrl_filings(i)
-
-        while nrow(df_) == 200
-            append!(df, df_)
-            i += 1
-        end
-
-        append!(df, df_)
-    end
 end
 
 function calculate_country_rollup(df)
