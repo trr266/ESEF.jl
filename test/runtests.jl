@@ -48,6 +48,29 @@ using Test
 lei = "529900NNUPAGGOMPXZ31"
 lei_list = [lei, "HWUPKR0MPOU8FGXBT394"]
 
+@testset "ESEF XBRL Filings API" begin
+    df = get_esef_xbrl_filings(; debug = true)
+    @test ncol(df) == 9
+    @test nrow(df) > 200
+    @test names(df) == [
+        "entity_name",
+        "country_alpha_2",
+        "date",
+        "filing_key",
+        "error_count",
+        "xbrl_json_path",
+        "error_json_path",
+        "country",
+        "countryLabel",
+    ]
+
+    country_rollup = calculate_country_rollup(df)
+
+    @test ncol(country_rollup) == 2
+    @test nrow(country_rollup) > 5
+    @test names(country_rollup) == ["countryLabel", "report_count"]
+end
+
 @testset "ESEF.jl Visualizations" begin
     plots = generate_esef_homepage_viz()
 
@@ -239,28 +262,6 @@ end
 @testset "ESEF Visualizations: European Basemap" begin
     geo = prepare_eu_geodata()
     @test geo isa DataFrame
-end
-
-@testset "ESEF XBRL Filings API" begin
-    df = get_esef_xbrl_filings(; debug = true)
-    @test ncol(df) == 8
-    @test nrow(df) > 200
-    @test names(df) == [
-        "entity_name",
-        "country_alpha_2",
-        "date",
-        "filing_key",
-        "error_count",
-        "xbrl_json_path",
-        "country",
-        "countryLabel",
-    ]
-
-    country_rollup = calculate_country_rollup(df)
-
-    @test ncol(country_rollup) == 2
-    @test nrow(country_rollup) > 5
-    @test names(country_rollup) == ["countryLabel", "report_count"]
 end
 
 @testset "Quick Statement Construction" begin

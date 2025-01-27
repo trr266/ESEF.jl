@@ -65,29 +65,23 @@ function export_equity_table(oxigraph_port)
 end
 
 function build_xbrl_dataframe(; test=false)
-    df_xbrl_raw = get_esef_xbrl_filings()
+    df_xbrl_raw = get_esef_xbrl_filings(debug=test)
 
     if test
         df_xbrl_raw = first(df_xbrl_raw, 5)
     end
 
+
     df_xbrl_raw = @chain df_xbrl_raw begin
         @subset(:xbrl_json_path != nothing)
-        @transform(
-            :xbrl_json_url =
-                "https://filings.xbrl.org/" *
-                :filing_key *
-                "/" *
-                HTTP.escapeuri(:xbrl_json_path)
-        )
-        @select(:xbrl_json_url)
     end
 
     df_esef_rdf = DataFrame()
 
     for r in eachrow(df_xbrl_raw)
-        xbrl_json_url = r[:xbrl_json_url]
-        df_ = pluck_xbrl_json(xbrl_json_url)
+        xbrl_json_path = r[:xbrl_json_path]
+        @info "Fetching: $xbrl_json_path"
+        df_ = get_xbrl_json_doc(xbrl_json_path)
         df_rdf = @chain df_ begin
             # TODO: Rethink normalization, instead of using uuid for facts at RDF subject field
             @transform(

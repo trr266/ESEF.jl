@@ -6,8 +6,8 @@ using CSV
 using JSON
 using Memoization
 
-function pluck_xbrl_json(url)
-    r = HTTP.get(url)
+function get_xbrl_json_doc(xbrl_json_path)
+    r = HTTP.get("https://filings.xbrl.org/api" * xbrl_json_path)
 
     # Check 200 HTTP status code
     @assert(r.status == 200)
@@ -41,9 +41,6 @@ function pluck_xbrl_json(url)
     return finished_facts
 end
 
-# TODO: Extract XBRL facts from items where "xbrl-json" key is populated.
-# 2594003JTXPYO8NOG018/2020-12-31/ESEF/PL/0
-# https://filings.xbrl.org/2594003JTXPYO8NOG018/2020-12-31/ESEF/PL/0/enea-2020-12-31.json
 function get_esef_xbrl_filings(url)
     r = HTTP.get(url)
     
@@ -63,6 +60,7 @@ function get_esef_xbrl_filings(url)
         :filing_key,
         :error_count,
         :xbrl_json_path,
+        :error_json_path,
     )
 
     df_error = DataFrame()
