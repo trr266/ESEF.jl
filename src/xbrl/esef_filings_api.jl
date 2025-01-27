@@ -91,6 +91,11 @@ function get_esef_xbrl_filings(url)
             xbrl_json_path = xbrl_json_path == "" ? nothing : xbrl_json_path
         end
 
+        error_json_path = nothing
+        if haskey(d_value["relationships"], "validation_messages")
+            error_json_path = d_value["relationships"]["validation_messages"]["links"]["related"]
+        end
+
         new_row = NamedTuple{row_names}([
             entity_name,
             country,
@@ -98,6 +103,7 @@ function get_esef_xbrl_filings(url)
             filing_key,
             error_count,
             xbrl_json_path,
+            error_json_path,
         ])
         push!(df, new_row; promote=true)
     end

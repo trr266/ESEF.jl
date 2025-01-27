@@ -65,7 +65,7 @@ function export_equity_table(oxigraph_port)
 end
 
 function build_xbrl_dataframe(; test=false)
-    df_xbrl_raw = get_esef_xbrl_filings()[1]
+    df_xbrl_raw = get_esef_xbrl_filings()
 
     if test
         df_xbrl_raw = first(df_xbrl_raw, 5)

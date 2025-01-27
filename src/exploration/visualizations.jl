@@ -60,7 +60,7 @@ function generate_esef_report_map(; is_poster=false)
     )
     ga.limits[] = (-28, 35, 35, 72)
     eu_geo = prepare_eu_geodata()
-    df, df_error = get_esef_xbrl_filings()
+    df = get_esef_xbrl_filings()
     country_rollup = calculate_country_rollup(df)
 
     eu_geo = leftjoin(eu_geo, country_rollup; on=(:ADMIN => :countryLabel))
@@ -150,7 +150,7 @@ function generate_esef_mandate_map()
 end
 
 function generate_esef_error_hist()
-    df, df_error = get_esef_xbrl_filings()
+    df = get_esef_xbrl_filings()
 
     pct_error_free = @chain df begin
         @transform(:error_free_report = :error_count == 0)
@@ -178,7 +178,7 @@ function generate_esef_error_hist()
 end
 
 function generate_esef_country_availability_bar()
-    df, df_error = get_esef_xbrl_filings()
+    df = get_esef_xbrl_filings()
 
     country_rollup = calculate_country_rollup(df)
 
@@ -208,7 +208,7 @@ function generate_esef_country_availability_bar()
 end
 
 function generate_esef_error_type_freq_bar()
-    df, df_error = get_esef_xbrl_filings()
+    df = get_esef_xbrl_filings()
 
     df_error_wide = @chain df_error begin
         leftjoin(df; on=:key)
@@ -247,7 +247,7 @@ function generate_esef_error_type_freq_bar()
 end
 
 function generate_esef_error_country_heatmap()
-    df, df_error = get_esef_xbrl_filings()
+    df = get_esef_xbrl_filings()
 
     df_error_wide = @chain df_error begin
         leftjoin(df; on=:key)
@@ -289,7 +289,7 @@ function generate_esef_error_country_heatmap()
 end
 
 function generate_esef_publication_date_composite()
-    df, df_error = get_esef_xbrl_filings()
+    df = get_esef_xbrl_filings()
 
     df_country_date = @chain df begin
         @transform(:month = string(floor(Date(:date), Month)))

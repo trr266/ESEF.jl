@@ -1,4 +1,4 @@
-FROM julia:1.10-rc
+FROM julia:1.11
 
 ENV JULIA_DEPOT_PATH=/opt/julia
 ENV JULIA_PKGDIR=/opt/julia

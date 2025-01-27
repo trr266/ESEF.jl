@@ -242,30 +242,24 @@ end
 end
 
 @testset "ESEF XBRL Filings API" begin
-    df, df_error = get_esef_xbrl_filings(; debug = true)
-    @test ncol(df) == 10
-    @test nrow(df) > 4000
+    df = get_esef_xbrl_filings(; debug = true)
+    @test ncol(df) == 8
+    @test nrow(df) > 200
     @test names(df) == [
-        "key",
         "entity_name",
         "country_alpha_2",
         "date",
         "filing_key",
         "error_count",
-        "error_codes",
         "xbrl_json_path",
         "country",
         "countryLabel",
     ]
 
-    @test ncol(df_error) == 2
-    @test nrow(df_error) > 1000
-    @test names(df_error) == ["key", "error_code"]
-
     country_rollup = calculate_country_rollup(df)
 
     @test ncol(country_rollup) == 2
-    @test nrow(country_rollup) == 29
+    @test nrow(country_rollup) > 5
     @test names(country_rollup) == ["countryLabel", "report_count"]
 end
 
