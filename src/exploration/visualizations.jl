@@ -150,9 +150,9 @@ function generate_esef_mandate_map()
 end
 
 function generate_esef_error_hist(; debug=false)
-    df = get_esef_xbrl_filings(debug=debug)
+    df_xbrl = get_esef_xbrl_filings(debug=debug)
 
-    pct_error_free = @chain df begin
+    pct_error_free = @chain df_xbrl begin
         @transform(:error_free_report = :error_count == 0)
         @combine(:error_free_report_pct = round(mean(:error_free_report) * 100; digits=0))
         _[1, :error_free_report_pct]
@@ -166,7 +166,7 @@ function generate_esef_error_hist(; debug=false)
         ylabel="Filing Count",
         title="Errored ESEF Filings by Error Count ($(pct_error_free)% error free)",
     )
-    plt = @chain df begin
+    plt = @chain df_xbrl begin
         @subset(:error_count != 0)
         data(_) *
         mapping(:error_count) *
@@ -208,13 +208,9 @@ function generate_esef_country_availability_bar(; debug=false)
 end
 
 function generate_esef_error_type_freq_bar(; debug=false)
-    df = get_esef_xbrl_filings(; debug=debug)
+    df_esef_error = get_error_messages(debug=debug)
 
-    df_error_wide = @chain df_error begin
-        leftjoin(df; on=:key)
-    end
-
-    df_error_count = @chain df_error_wide begin
+    df_error_count = @chain df_esef_error begin
         @transform(:error_code = truncate_text(:error_code))
         @groupby(:error_code)
         @combine(:error_count = length(:error_code))
@@ -247,10 +243,7 @@ function generate_esef_error_type_freq_bar(; debug=false)
 end
 
 function generate_esef_error_country_heatmap(; debug=false)
-
-    df_error_wide = @chain df_error begin
-        leftjoin(df; on=:key)
-    end
+    df_error_wide = get_error_messages(debug=debug)
 
     df_error_country = @chain df_error_wide begin
         @transform(:error_code = truncate_text(:error_code))
@@ -355,7 +348,7 @@ function generate_esef_homepage_viz(; debug=false)
         :esef_error_country_heatmap => generate_esef_error_country_heatmap(debug=debug),
         :esef_error_hist => generate_esef_error_hist(debug=debug),
         :esef_error_type_freq_bar => generate_esef_error_type_freq_bar(debug=debug),
-        :esef_mandate_overview => generate_esef_mandate_map(debug=debug),
+        :esef_mandate_overview => generate_esef_mandate_map(),
         :esef_publication_date_composite => generate_esef_publication_date_composite(debug=debug),
     )
 

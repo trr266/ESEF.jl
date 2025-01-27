@@ -129,30 +129,33 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false)
         mkdir(".cache")
     end
 
-    if !isfile(".cache/df_esef_rdf.arrow")
+    debug_flag = debug ? "_debug" : ""
+    f_esef_arrow
+    if !isfile(f_esef_arrow)
         df_esef_rdf = @chain build_xbrl_dataframe(debug=debug) begin
-            @aside Arrow.write(".cache/df_esef_rdf.arrow", _)
+            @aside Arrow.write(f_esef_arrow, _)
         end
     else
-        df_esef_rdf = @chain ".cache/df_esef_rdf.arrow" begin
+        df_esef_rdf = @chain f_esef_arrow begin
             Arrow.Table()
             DataFrame()
         end
     end
 
-    if !isfile(".cache/df_wikidata_rdf.arrow")
+    f_wikidata = ".cache/df_wikidata_rdf$debug_flag.arrow"
+    if !isfile(f_wikidata)
         df_wikidata_rdf = @chain build_wikidata_dataframe() begin
-            @aside Arrow.write(".cache/df_wikidata_rdf.arrow", _)
+            @aside Arrow.write(f_wikidata, _)
         end
 
     else
-        df_wikidata_rdf = @chain ".cache/df_wikidata_rdf.arrow" begin
+        df_wikidata_rdf = @chain f_wikidata begin
             Arrow.Table()
             DataFrame()
         end
     end
 
-    nt_file_path = ".cache/oxigraph_rdf.nt"
+    nt_file_path = ".cache/oxigraph_rdf$debug_flag.nt"
 
     rm(nt_file_path; force=true)
 
@@ -165,7 +168,7 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false)
     end
 
     oxigraph_process, oxigraph_port = serve_oxigraph(;
-        nt_file_path=".cache/oxigraph_rdf.nt", rebuild_db=true, keep_open=keep_open
+        nt_file_path=nt_file_path, rebuild_db=true, keep_open=keep_open
     )
 
     return oxigraph_process, oxigraph_port
@@ -176,19 +179,20 @@ function process_xbrl_filings(; out_dir=".cache/", debug=false)
         mkdir(out_dir)
     end
 
+    debug_flag = debug ? "_debug" : ""
     process, port = serve_esef_data(; keep_open=true, debug=debug)
 
     # Rollup of all concepts available from ESEF data using XBRL's filings API
     df_concepts = export_concept_count_table(port)
     @chain df_concepts begin
         @sort(-:frequency)
-        Arrow.write(out_dir * "/concept_df.arrow", _)
+        Arrow.write(out_dir * "/concept_df$debug_flag.arrow", _)
     end
 
     df_profit = export_profit_table(port)
 
     @chain df_profit begin
-        Arrow.write(out_dir * "/profit_df.arrow", _)
+        Arrow.write(out_dir * "/profit_df$debug_flag.arrow", _)
     end
 
     return kill(process)

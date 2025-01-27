@@ -6,7 +6,7 @@ using CSV
 using JSON
 using Memoization
 
-function get_xbrl_json_doc(xbrl_json_path)
+@memoize function get_xbrl_json_doc(xbrl_json_path)
     url = "https://filings.xbrl.org" * xbrl_json_path
 
     @info "Fetching: $url"
@@ -45,7 +45,7 @@ function get_xbrl_json_doc(xbrl_json_path)
     return finished_facts
 end
 
-function get_error_messages(error_json_path)
+@memoize function get_error_messages(error_json_path)
     url = "https://filings.xbrl.org" * error_json_path
 
     @info "Fetching: $url"
@@ -86,10 +86,18 @@ function get_error_messages(; debug=false)
     end
 
     df_esef_error = leftjoin(df_xbrl_raw, df_esef_error, on=:error_json_path)
+
+    df_esef_error = @chain df_esef_error begin
+        @transform(
+            :severity = :attributes["severity"],
+            :message = :attributes["message"],
+            :error_code = :attributes["code"],
+        )
+    end
     return df_esef_error
 end
 
-function get_esef_xbrl_filings(url)
+@memoize function get_esef_xbrl_filings(url)
     r = HTTP.get(url)
     
     # Check 200 HTTP status code
@@ -158,7 +166,8 @@ function get_esef_xbrl_filings(url)
 end
 
 function get_esef_xbrl_filings(; debug=false)
-    f = ".cache/esef_xbrl_filings_list.arrow"
+    debug_flag = debug ? "_debug" : ""
+    f = ".cache/esef_xbrl_filings_list$debug_flag.arrow"
 
     if !debug
         if !isdir(".cache")

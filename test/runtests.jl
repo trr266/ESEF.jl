@@ -11,6 +11,7 @@ using ESEF:
     generate_esef_homepage_viz,
     generate_quick_statement_from_lei_obj,
     get_accounting_facts,
+    get_error_messages,
     get_companies_with_isin_without_lei_wikidata,
     get_entities_which_are_instance_of_object,
     get_esef_mandate_df,
@@ -91,7 +92,7 @@ end
 end
 
 @testset "esef db test load" begin
-    serve_esef_data(test = true)
+    serve_esef_data(debug = true)
 end
 
 @testset "wikidata helper" begin
@@ -100,7 +101,7 @@ end
 end
 
 @testset "export_concept_count_table, export_profit_table, export_equity_table, export_total_assets_table" begin
-    process, port = serve_esef_data(test = true, keep_open = true)
+    process, port = serve_esef_data(debug = true, keep_open = true)
 
     q_path = joinpath(@__DIR__, "..", "queries", "local", "local_query_test.sparql")
     df = query_local_db_sparql(q_path, port)
@@ -131,7 +132,7 @@ end
 end
 
 @testset "export_concept_count_table, export_equity_table" begin
-    process, port = serve_esef_data(test = true, keep_open = true)
+    process, port = serve_esef_data(debug = true, keep_open = true)
 
     q_path = joinpath(@__DIR__, "..", "queries", "local", "local_query_test.sparql")
     df = query_local_db_sparql(q_path, port)
@@ -152,7 +153,7 @@ end
 end
 
 @testset "export_concept_count_table, export_total_assets_table" begin
-    process, port = serve_esef_data(test = true, keep_open = true)
+    process, port = serve_esef_data(debug = true, keep_open = true)
 
     q_path = joinpath(@__DIR__, "..", "queries", "local", "local_query_test.sparql")
     df = query_local_db_sparql(q_path, port)
@@ -416,7 +417,7 @@ end
 @testset "process_xbrl_filings" begin
     out_dir = ".cache"
     rm(out_dir; force = true, recursive = true)
-    process_xbrl_filings(out_dir = out_dir, test = true)
+    process_xbrl_filings(out_dir = out_dir, debug = true)
 
     files_ = [".cache/concept_df.arrow", ".cache/profit_df.arrow"]
     for f in files_
@@ -427,10 +428,10 @@ end
 end
 
 @testset "get_error_messages" begin
-    df_error = get_error_messages(; debug=true)
+    df_error = get_error_messages(debug=true)
     @test ncol(df_error) == 12
     @test nrow(df_error) > 10
-    @test names(df_error) == [ "entity_name"
+    @test names(df_error) == ["entity_name"
     "country_alpha_2"
     "date"
     "filing_key"
