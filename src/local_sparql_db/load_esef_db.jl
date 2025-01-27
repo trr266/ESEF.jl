@@ -130,7 +130,7 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false)
     end
 
     debug_flag = debug ? "_debug" : ""
-    f_esef_arrow
+    f_esef_arrow = ".cache/df_esef_rdf$debug_flag.arrow"
     if !isfile(f_esef_arrow)
         df_esef_rdf = @chain build_xbrl_dataframe(debug=debug) begin
             @aside Arrow.write(f_esef_arrow, _)
