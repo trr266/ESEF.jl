@@ -64,30 +64,30 @@ function export_equity_table(oxigraph_port)
     return df_profit
 end
 
-function build_xbrl_dataframe(; test=false)
-    df_xbrl_raw = get_esef_xbrl_filings(debug=test)
+function build_xbrl_dataframe(; debug=false)
+    df_xbrl_raw = get_esef_xbrl_filings(debug=debug)
 
-    if test
+    if debug
         df_xbrl_raw = first(df_xbrl_raw, 5)
     end
 
 
     df_xbrl_raw = @chain df_xbrl_raw begin
         @subset(:xbrl_json_path != nothing)
+        @transform(:xbrl_json_path = replace(:xbrl_json_path, " " => "%20"))
     end
 
     df_esef_rdf = DataFrame()
 
     for r in eachrow(df_xbrl_raw)
         xbrl_json_path = r[:xbrl_json_path]
-        @info "Fetching: $xbrl_json_path"
         df_ = get_xbrl_json_doc(xbrl_json_path)
         df_rdf = @chain df_ begin
             # TODO: Rethink normalization, instead of using uuid for facts at RDF subject field
             @transform(
                 :rdf_line =
                     "<http://example.org/" *
-                    HTTP.escapeuri(string(xbrl_json_url, :subject)) *
+                    HTTP.escapeuri(string("https://filings.xbrl.org" * xbrl_json_path, :subject)) *
                     "> <http://example.org/" *
                     HTTP.escapeuri(:predicate) *
                     "> <http://example.org/" *
@@ -96,6 +96,7 @@ function build_xbrl_dataframe(; test=false)
             )
         end
         append!(df_esef_rdf, df_rdf)
+        sleep(0.5)
     end
 
     return df_esef_rdf
@@ -123,13 +124,13 @@ function build_wikidata_dataframe()
     end
 end
 
-function serve_esef_data(; keep_open=false, rebuild_db=true, test=false)
+function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false)
     if !isdir(".cache")
         mkdir(".cache")
     end
 
     if !isfile(".cache/df_esef_rdf.arrow")
-        df_esef_rdf = @chain build_xbrl_dataframe(test=test) begin
+        df_esef_rdf = @chain build_xbrl_dataframe(debug=debug) begin
             @aside Arrow.write(".cache/df_esef_rdf.arrow", _)
         end
     else
@@ -170,12 +171,12 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, test=false)
     return oxigraph_process, oxigraph_port
 end
 
-function process_xbrl_filings(; out_dir=".cache/", test=false)
+function process_xbrl_filings(; out_dir=".cache/", debug=false)
     if !isdir(out_dir)
         mkdir(out_dir)
     end
 
-    process, port = serve_esef_data(; keep_open=true, test=test)
+    process, port = serve_esef_data(; keep_open=true, debug=debug)
 
     # Rollup of all concepts available from ESEF data using XBRL's filings API
     df_concepts = export_concept_count_table(port)

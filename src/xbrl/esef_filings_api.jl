@@ -7,7 +7,11 @@ using JSON
 using Memoization
 
 function get_xbrl_json_doc(xbrl_json_path)
-    r = HTTP.get("https://filings.xbrl.org/api" * xbrl_json_path)
+    url = "https://filings.xbrl.org" * xbrl_json_path
+
+    @info "Fetching: $url"
+    
+    r = HTTP.get(url)
 
     # Check 200 HTTP status code
     @assert(r.status == 200)
@@ -39,6 +43,50 @@ function get_xbrl_json_doc(xbrl_json_path)
     end
 
     return finished_facts
+end
+
+function get_error_messages(error_json_path)
+    url = "https://filings.xbrl.org" * error_json_path
+
+    @info "Fetching: $url"
+
+    r = HTTP.get(url)
+
+    # Check 200 HTTP status code
+    @assert(r.status == 200)
+
+    raw_data = @chain r.body begin
+        String()
+        JSON.parse()
+    end
+    
+    return DataFrame(raw_data["data"])
+end
+
+function get_error_messages(; debug=false)
+    df_xbrl_raw = get_esef_xbrl_filings(debug=debug)
+
+    if debug
+        df_xbrl_raw = first(df_xbrl_raw, 5)
+    end
+
+    df_xbrl_raw = @chain df_xbrl_raw begin
+        @subset(:error_json_path != nothing)
+        @transform(:error_json_path = replace(:error_json_path, " " => "%20"))
+    end
+
+    df_esef_error = DataFrame()
+
+    for r in eachrow(df_xbrl_raw)
+        error_json_path = r[:error_json_path]
+        df_ = get_error_messages(error_json_path)
+        df_[!, :error_json_path] .= r[:error_json_path]
+        append!(df_esef_error, df_)
+        sleep(0.5)
+    end
+
+    df_esef_error = leftjoin(df_xbrl_raw, df_esef_error, on=:error_json_path)
+    return df_esef_error
 end
 
 function get_esef_xbrl_filings(url)

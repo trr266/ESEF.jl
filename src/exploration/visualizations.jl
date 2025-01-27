@@ -36,7 +36,7 @@ function prepare_eu_geodata()
     return vcat(malta, europe)
 end
 
-function generate_esef_report_map(; is_poster=false)
+function generate_esef_report_map(; is_poster=false, debug=false)
     background_gray = RGBf(0.85, 0.85, 0.85)
     if is_poster
         background_color = :transparent
@@ -60,7 +60,7 @@ function generate_esef_report_map(; is_poster=false)
     )
     ga.limits[] = (-28, 35, 35, 72)
     eu_geo = prepare_eu_geodata()
-    df = get_esef_xbrl_filings()
+    df = get_esef_xbrl_filings(debug=debug)
     country_rollup = calculate_country_rollup(df)
 
     eu_geo = leftjoin(eu_geo, country_rollup; on=(:ADMIN => :countryLabel))
@@ -149,8 +149,8 @@ function generate_esef_mandate_map()
     return fig
 end
 
-function generate_esef_error_hist()
-    df = get_esef_xbrl_filings()
+function generate_esef_error_hist(; debug=false)
+    df = get_esef_xbrl_filings(debug=debug)
 
     pct_error_free = @chain df begin
         @transform(:error_free_report = :error_count == 0)
@@ -177,8 +177,8 @@ function generate_esef_error_hist()
     return draw(plt; axis)
 end
 
-function generate_esef_country_availability_bar()
-    df = get_esef_xbrl_filings()
+function generate_esef_country_availability_bar(; debug=false)
+    df = get_esef_xbrl_filings(debug=debug)
 
     country_rollup = calculate_country_rollup(df)
 
@@ -207,8 +207,8 @@ function generate_esef_country_availability_bar()
     return draw(plt; axis)
 end
 
-function generate_esef_error_type_freq_bar()
-    df = get_esef_xbrl_filings()
+function generate_esef_error_type_freq_bar(; debug=false)
+    df = get_esef_xbrl_filings(; debug=debug)
 
     df_error_wide = @chain df_error begin
         leftjoin(df; on=:key)
@@ -246,8 +246,7 @@ function generate_esef_error_type_freq_bar()
     return draw(fg_error_freq_bar; axis=axis)
 end
 
-function generate_esef_error_country_heatmap()
-    df = get_esef_xbrl_filings()
+function generate_esef_error_country_heatmap(; debug=false)
 
     df_error_wide = @chain df_error begin
         leftjoin(df; on=:key)
@@ -288,8 +287,8 @@ function generate_esef_error_country_heatmap()
     return fig
 end
 
-function generate_esef_publication_date_composite()
-    df = get_esef_xbrl_filings()
+function generate_esef_publication_date_composite(; debug=false)
+    df = get_esef_xbrl_filings(debug=debug)
 
     df_country_date = @chain df begin
         @transform(:month = string(floor(Date(:date), Month)))
@@ -349,15 +348,15 @@ function generate_esef_publication_date_composite()
     return fig
 end
 
-function generate_esef_homepage_viz()
+function generate_esef_homepage_viz(; debug=false)
     viz = Dict(
-        :esef_country_availability_bar => generate_esef_country_availability_bar(),
-        :esef_country_availability_map => generate_esef_report_map(),
-        :esef_error_country_heatmap => generate_esef_error_country_heatmap(),
-        :esef_error_hist => generate_esef_error_hist(),
-        :esef_error_type_freq_bar => generate_esef_error_type_freq_bar(),
-        :esef_mandate_overview => generate_esef_mandate_map(),
-        :esef_publication_date_composite => generate_esef_publication_date_composite(),
+        :esef_country_availability_bar => generate_esef_country_availability_bar(debug=debug),
+        :esef_country_availability_map => generate_esef_report_map(debug=debug),
+        :esef_error_country_heatmap => generate_esef_error_country_heatmap(debug=debug),
+        :esef_error_hist => generate_esef_error_hist(debug=debug),
+        :esef_error_type_freq_bar => generate_esef_error_type_freq_bar(debug=debug),
+        :esef_mandate_overview => generate_esef_mandate_map(debug=debug),
+        :esef_publication_date_composite => generate_esef_publication_date_composite(debug=debug),
     )
 
     return viz

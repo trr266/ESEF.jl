@@ -72,7 +72,7 @@ lei_list = [lei, "HWUPKR0MPOU8FGXBT394"]
 end
 
 @testset "ESEF.jl Visualizations" begin
-    plots = generate_esef_homepage_viz()
+    plots = generate_esef_homepage_viz(debug=true)
 
     # Check all plots generated
     @test sort([keys(plots)...]) == sort([
@@ -424,4 +424,22 @@ end
     end
 
     rm(out_dir; force = true, recursive = true)
+end
+
+@testset "get_error_messages" begin
+    df_error = get_error_messages(; debug=true)
+    @test ncol(df_error) == 12
+    @test nrow(df_error) > 10
+    @test names(df_error) == [ "entity_name"
+    "country_alpha_2"
+    "date"
+    "filing_key"
+    "error_count"
+    "xbrl_json_path"
+    "error_json_path"
+    "country"
+    "countryLabel"
+    "attributes"
+    "id"
+    "type"]
 end
