@@ -105,8 +105,19 @@ function get_esef_xbrl_filings(url)
     return df, next_url
 end
 
-@memoize function get_esef_xbrl_filings(; debug=false)
-    # NOTE: use   "links"   => Dict{String, Any}("next"=>"https://filings.xbrl.org/api/filings?page%5Bsize%5D=200&page%5Bnumber%5D=2", to iterate through api
+function get_esef_xbrl_filings(; debug=false)
+    f = ".cache/esef_xbrl_filings_list.arrow"
+
+    if !debug
+        if !isdir(".cache")
+            mkdir(".cache")
+        end
+        
+        if isfile(f)
+            df = DataFrame(Arrow.Table(f))
+            return df
+        end
+    end
     df = DataFrame()
 
     next_url = "https://filings.xbrl.org/api/filings?page[size]=200"
@@ -136,6 +147,10 @@ end
         leftjoin(_, country_lookup; on=:country_alpha_2)
     end
 
+    if !debug
+        Arrow.write(f, df)
+    end
+    return df
 end
 
 function calculate_country_rollup(df)

@@ -242,7 +242,7 @@ end
 end
 
 @testset "ESEF XBRL Filings API" begin
-    df, df_error = get_esef_xbrl_filings()
+    df, df_error = get_esef_xbrl_filings(; debug = true)
     @test ncol(df) == 10
     @test nrow(df) > 4000
     @test names(df) == [
