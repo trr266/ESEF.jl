@@ -13,7 +13,7 @@ function get_lei_data(lei::String)
     sleep(1) # Rate limited to 1 request per second
     query = Dict("filter[lei]" => lei, "page[size]" => 200)
 
-    @chain "https://api.gleif.org/api/v1/lei-records" begin
+    data = @chain "https://api.gleif.org/api/v1/lei-records" begin
         HTTP.get(; query=query)
         @aside @assert(_.status == 200)
         _.body
@@ -21,21 +21,25 @@ function get_lei_data(lei::String)
         JSON.parse
         _["data"]
     end
+
+    return data
 end
 
-function get_lei_names(lei_data)
+function get_lei_names(lei_entry)
     lei_legal_name = missing
-    if "legalName" in keys(lei_data["attributes"]["entity"])
-        lei_legal_name = lei_data["attributes"]["entity"]["legalName"]["name"]
+    legal_name_entry = lei_entry["attributes"]["entity"]["legalName"]
+    if isa(legal_name_entry, Dict)
+        lei_legal_name = legal_name_entry["name"]
     end
 
-    lei_other_name = missing
+    lei_other_names = []
 
-    if "otherNames" in keys(lei_data["attributes"]["entity"])
-        lei_other_name = lei_data["attributes"]["entity"]["otherNames"][1]["name"]
+    other_names_entry = lei_entry["attributes"]["entity"]["otherNames"]
+    if length(other_names_entry) > 0
+        lei_other_names = [o["name"] for o in other_names_entry]
     end
 
-    return lei_legal_name, lei_other_name
+    return lei_legal_name, lei_other_names
 end
 
 function get_isin_data(lei)

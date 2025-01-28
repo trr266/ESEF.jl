@@ -44,7 +44,7 @@ using DataFrames
 using DataFrameMacros
 using GeoJSON
 using Chain
-using Test
+using Tes
 
 lei = "529900NNUPAGGOMPXZ31"
 lei_list = [lei, "HWUPKR0MPOU8FGXBT394"]
@@ -176,7 +176,9 @@ end
 @testset "LEI query" begin
     lei = "213800AAFUV5PKGQU848"
     lei_data = get_lei_data(lei)
-    get_lei_names(lei_data[1]) == ("TYMAN PLC", "LUPUS CAPITAL PLC")
+    lei_names = get_lei_names(lei_data[1])
+    @test lei_names[1] == "TYMAN LIMITED"
+    @test "LUPUS CAPITAL PLC" in lei_names[2]
 end
 
 
