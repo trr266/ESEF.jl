@@ -410,7 +410,7 @@ end
 end
 
 @testset "Build RDF Dataframes" begin
-    df = build_xbrl_dataframe(; test = true)
+    df = build_xbrl_dataframe(; debug = true)
     @test names(df) == ["subject", "predicate", "object", "rdf_line"]
 end
 
@@ -419,7 +419,7 @@ end
     rm(out_dir; force = true, recursive = true)
     process_xbrl_filings(out_dir = out_dir, debug = true)
 
-    files_ = [".cache/concept_df.arrow", ".cache/profit_df.arrow"]
+    files_ = [".cache/concept_df_debug.arrow", ".cache/profit_df_debug.arrow"]
     for f in files_
         @test isfile(f)
     end
@@ -431,16 +431,21 @@ end
     df_error = get_error_messages(debug=true)
     @test ncol(df_error) == 12
     @test nrow(df_error) > 10
-    @test names(df_error) == ["entity_name"
-    "country_alpha_2"
-    "date"
-    "filing_key"
-    "error_count"
-    "xbrl_json_path"
-    "error_json_path"
-    "country"
-    "countryLabel"
-    "attributes"
-    "id"
-    "type"]
+    @test names(df_error) == [
+        "entity_name",
+        "country_alpha_2",
+        "date",
+        "filing_key",
+        "error_count",
+        "xbrl_json_path",
+        "error_json_path",
+        "country",
+        "countryLabel",
+        "attributes",
+        "id",
+        "type",
+        "severity",
+        "message",
+        "error_code"
+    ]
 end
