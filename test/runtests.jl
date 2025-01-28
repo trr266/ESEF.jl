@@ -431,7 +431,7 @@ end
 
 @testset "get_error_messages" begin
     df_error = get_error_messages(debug=true)
-    @test ncol(df_error) == 12
+    @test ncol(df_error) == 15
     @test nrow(df_error) > 10
     @test names(df_error) == [
         "entity_name",
