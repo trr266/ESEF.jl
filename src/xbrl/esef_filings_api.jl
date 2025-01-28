@@ -45,7 +45,8 @@ using Memoization
     return finished_facts
 end
 
-@memoize function get_error_messages(error_json_path)
+function get_error_messages(error_json_path)
+    sleep(0.9)
     url = "https://filings.xbrl.org" * error_json_path
 
     @info "Fetching: $url"
@@ -60,10 +61,27 @@ end
         JSON.parse()
     end
     
-    return DataFrame(raw_data["data"])
+    if length(raw_data["data"]) == 0
+        return DataFrame(attributes=[], id=[], type=[])
+    end
+    return DataFrame(raw_data["data"]) #[!, [:attributes, :id, :type]]
 end
 
 function get_error_messages(; debug=false)
+    debug_flag = debug ? "_debug" : ""
+    f = ".cache/esef_error_messages$debug_flag.arrow"
+
+    if !debug
+        if !isdir(".cache")
+            mkdir(".cache")
+        end
+        
+        if isfile(f)
+            df = DataFrame(Arrow.Table(f))
+            return df
+        end
+    end
+
     df_xbrl_raw = get_esef_xbrl_filings(debug=debug)
 
     if debug
@@ -82,7 +100,6 @@ function get_error_messages(; debug=false)
         df_ = get_error_messages(error_json_path)
         df_[!, :error_json_path] .= r[:error_json_path]
         append!(df_esef_error, df_)
-        sleep(0.5)
     end
 
     df_esef_error = leftjoin(df_xbrl_raw, df_esef_error, on=:error_json_path)
@@ -98,6 +115,8 @@ function get_error_messages(; debug=false)
 end
 
 @memoize function get_esef_xbrl_filings(url)
+    sleep(0.9)
+
     r = HTTP.get(url)
     
     # Check 200 HTTP status code
@@ -187,7 +206,6 @@ function get_esef_xbrl_filings(; debug=false)
         @info "Fetching: $next_url"
         df_, next_url = get_esef_xbrl_filings(next_url)
         append!(df, df_)
-        sleep(1.5)
         if debug
             break
         end

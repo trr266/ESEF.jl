@@ -430,6 +430,12 @@ end
 end
 
 @testset "get_error_messages" begin
+
+    d_ = get_error_messages("/api/filings/9963/validation_messages")
+    @test names(d_) == ["attributes", "id", "type"]
+    d_ = get_error_messages("/api/filings/2/validation_messages")
+    @test names(d_) == ["attributes", "id", "type"]
+    
     df_error = get_error_messages(debug=true)
     @test ncol(df_error) == 15
     @test nrow(df_error) > 10
