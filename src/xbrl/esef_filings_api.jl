@@ -92,27 +92,36 @@ function get_error_messages(; debug=false)
 
     df_xbrl_raw = @chain df_xbrl_raw begin
         @subset(:error_json_path != nothing)
-        @subset(:error_json_path ∉ cached_error_paths) # Drop already cached error paths
         @transform(:error_json_path = replace(:error_json_path, " " => "%20"))
+        @subset(:error_json_path ∉ cached_error_paths) # Drop already cached error paths
     end
 
-    for r in eachrow(df_xbrl_raw)
-        error_json_path = r[:error_json_path]
-        df_ = get_error_messages(error_json_path)
-        df_[!, :error_json_path] .= r[:error_json_path]
-        append!(df_esef_error, df_)
+    if nrow(df_xbrl_raw) > 0
+        for r in eachrow(df_xbrl_raw)
+            error_json_path = r[:error_json_path]
+            df_ = get_error_messages(error_json_path)
+            df_[!, :error_json_path] .= r[:error_json_path]
+            df_ = @chain df_ begin
+                @transform(
+                    :severity = :attributes["severity"],
+                    :message = :attributes["message"],
+                    :error_code = :attributes["code"],
+                )
+                @select(:error_json_path, :type, :error_code, :severity, :message)
+            end
+
+            if nrow(df_) == 0
+            df_ = DataFrame(error_json_path=error_json_path, type="placeholder", error_code="", severity="INFO", message="No errors")
+            end
+        
+            append!(df_esef_error, df_)
+        end
     end
 
-    df_esef_error = @chain df_esef_error begin
-        @transform(
-            :severity = :attributes["severity"],
-            :message = :attributes["message"],
-            :error_code = :attributes["code"],
-        )
-        @select(:id, :error_json_path, :severity, :message, :error_code, :type)
+    if nrow(df_esef_error) > 0
+        rm(f, force=true)
+        Arrow.write(f, df_esef_error) # Write or overwrite cache
     end
-
-    Arrow.write(f, df_esef_error) # Write or overwrite cache
     return df_esef_error
 end
 

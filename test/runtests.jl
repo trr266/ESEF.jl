@@ -45,6 +45,7 @@ using DataFrameMacros
 using GeoJSON
 using Chain
 using Test
+using Arrow
 
 lei = "529900NNUPAGGOMPXZ31"
 lei_list = [lei, "HWUPKR0MPOU8FGXBT394"]
@@ -440,17 +441,8 @@ end
     @test ncol(df_error) == 15
     @test nrow(df_error) > 10
     @test names(df_error) == [
-        "entity_name",
-        "country_alpha_2",
-        "date",
-        "filing_key",
-        "error_count",
-        "xbrl_json_path",
-        "error_json_path",
-        "country",
-        "countryLabel",
-        "attributes",
         "id",
+        "error_json_path",
         "type",
         "severity",
         "message",

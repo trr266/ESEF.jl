@@ -244,6 +244,8 @@ end
 
 function generate_esef_error_country_heatmap(; debug=false)
     df_error_wide = get_error_messages(debug=debug)
+    df_xbrl_raw = get_esef_xbrl_filings(debug=debug)
+    df_esef_error = leftjoin(df_xbrl_raw, df_esef_error, on=:error_json_path)
 
     df_error_country = @chain df_error_wide begin
         @transform(:error_code = truncate_text(:error_code))
