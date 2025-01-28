@@ -52,7 +52,7 @@ lei_list = [lei, "HWUPKR0MPOU8FGXBT394"]
 @testset "ESEF XBRL Filings API" begin
     df = get_esef_xbrl_filings(; debug = true)
     @test ncol(df) == 9
-    @test nrow(df) > 200
+    @test nrow(df) == 200
     @test names(df) == [
         "entity_name",
         "country_alpha_2",

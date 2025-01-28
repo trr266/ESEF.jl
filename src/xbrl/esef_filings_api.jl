@@ -68,30 +68,33 @@ function get_error_messages(error_json_path)
 end
 
 function get_error_messages(; debug=false)
-    df_xbrl_raw = get_esef_xbrl_filings(debug=debug)
-
     debug_flag = debug ? "_debug" : ""
     f = ".cache/esef_error_messages$debug_flag.arrow"
+
+    df_xbrl_raw = get_esef_xbrl_filings(debug=debug)
+
+    if debug
+        df_xbrl_raw = first(df_xbrl_raw, 5)
+    end
 
     if !isdir(".cache")
         mkdir(".cache")
     end
     
     if isfile(f)
-        df = DataFrame(Arrow.Table(f))
-        return df
+        df_esef_error = DataFrame(Arrow.Table(f))
+        cached_error_paths = df_esef_error[!, :error_json_path]
+    else
+        df_esef_error = DataFrame()
+        cached_error_paths = []
     end
 
-    if debug
-        df_xbrl_raw = first(df_xbrl_raw, 5)
-    end
 
     df_xbrl_raw = @chain df_xbrl_raw begin
         @subset(:error_json_path != nothing)
+        @subset(:error_json_path ∉ cached_error_paths) # Drop already cached error paths
         @transform(:error_json_path = replace(:error_json_path, " " => "%20"))
     end
-
-    df_esef_error = DataFrame()
 
     for r in eachrow(df_xbrl_raw)
         error_json_path = r[:error_json_path]
@@ -100,15 +103,16 @@ function get_error_messages(; debug=false)
         append!(df_esef_error, df_)
     end
 
-    df_esef_error = leftjoin(df_xbrl_raw, df_esef_error, on=:error_json_path)
-
     df_esef_error = @chain df_esef_error begin
         @transform(
             :severity = :attributes["severity"],
             :message = :attributes["message"],
             :error_code = :attributes["code"],
         )
+        @select(:id, :error_json_path, :severity, :message, :error_code, :type)
     end
+
+    Arrow.write(f, df_esef_error) # Write or overwrite cache
     return df_esef_error
 end
 
