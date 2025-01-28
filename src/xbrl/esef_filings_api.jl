@@ -68,21 +68,19 @@ function get_error_messages(error_json_path)
 end
 
 function get_error_messages(; debug=false)
+    df_xbrl_raw = get_esef_xbrl_filings(debug=debug)
+
     debug_flag = debug ? "_debug" : ""
     f = ".cache/esef_error_messages$debug_flag.arrow"
 
-    if !debug
-        if !isdir(".cache")
-            mkdir(".cache")
-        end
-        
-        if isfile(f)
-            df = DataFrame(Arrow.Table(f))
-            return df
-        end
+    if !isdir(".cache")
+        mkdir(".cache")
     end
-
-    df_xbrl_raw = get_esef_xbrl_filings(debug=debug)
+    
+    if isfile(f)
+        df = DataFrame(Arrow.Table(f))
+        return df
+    end
 
     if debug
         df_xbrl_raw = first(df_xbrl_raw, 5)
@@ -188,16 +186,15 @@ function get_esef_xbrl_filings(; debug=false)
     debug_flag = debug ? "_debug" : ""
     f = ".cache/esef_xbrl_filings_list$debug_flag.arrow"
 
-    if !debug
-        if !isdir(".cache")
-            mkdir(".cache")
-        end
-        
-        if isfile(f)
-            df = DataFrame(Arrow.Table(f))
-            return df
-        end
+    if !isdir(".cache")
+        mkdir(".cache")
     end
+    
+    if isfile(f)
+        df = DataFrame(Arrow.Table(f))
+        return df
+    end
+
     df = DataFrame()
 
     next_url = "https://filings.xbrl.org/api/filings?page[size]=200"
@@ -226,9 +223,8 @@ function get_esef_xbrl_filings(; debug=false)
         leftjoin(_, country_lookup; on=:country_alpha_2)
     end
 
-    if !debug
-        Arrow.write(f, df)
-    end
+    Arrow.write(f, df)
+
     return df
 end
 
