@@ -44,7 +44,7 @@ using DataFrames
 using DataFrameMacros
 using GeoJSON
 using Chain
-using Tes
+using Test
 
 lei = "529900NNUPAGGOMPXZ31"
 lei_list = [lei, "HWUPKR0MPOU8FGXBT394"]
