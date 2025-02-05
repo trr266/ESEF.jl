@@ -35,7 +35,7 @@ YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 oxigraph_server_jll = "ca7c0f55-ad95-5972-a3e2-8e5b4e3bed80"
 
 [compat]
-AlgebraOfGraphics = "0.8"
+AlgebraOfGraphics = "0.9"
 Arrow = "2"
 CSV = "0.10"
 CairoMakie = "0.12, 0.13"
@@ -59,6 +59,7 @@ Retry = "0.4"
 Setfield = "1"
 URIParser = "0.4"
 YAML = "0.4"
+oxigraph_server_jll = "0.4"
 
 [extras]
 Chain = "8be319e6-bccf-4806-a6f7-6fae938471bc"
