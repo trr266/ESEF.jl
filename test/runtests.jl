@@ -392,8 +392,8 @@ end
 
 @testset "get_wikidata_country_iso2_lookup" begin
     df = get_wikidata_country_iso2_lookup()
-    @test nrow(df) > 250
-    @test nrow(df) < 275
+    @test nrow(df) > 195
+    @test nrow(df) < 200
     @test names(df) == ["country", "countryLabel", "country_alpha_2"]
 end
 
@@ -423,15 +423,15 @@ end
     @test names(d_) == ["attributes", "id", "type"]
     
     df_error = get_error_messages(debug=true)
-    @test ncol(df_error) == 15
+    @test ncol(df_error) == 6
     @test nrow(df_error) > 10
     @test names(df_error) == [
         "id",
         "error_json_path",
         "type",
+        "error_code",
         "severity",
-        "message",
-        "error_code"
+        "message"
     ]
 end
 

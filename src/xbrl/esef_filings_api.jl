@@ -107,11 +107,11 @@ function get_error_messages(; debug=false)
                     :message = :attributes["message"],
                     :error_code = :attributes["code"],
                 )
-                @select(:error_json_path, :type, :error_code, :severity, :message)
+                @select(:id, :error_json_path, :type, :error_code, :severity, :message)
             end
 
             if nrow(df_) == 0
-            df_ = DataFrame(error_json_path=error_json_path, type="placeholder", error_code="", severity="INFO", message="No errors")
+            df_ = DataFrame(id="", error_json_path=error_json_path, type="placeholder", error_code="", severity="INFO", message="No errors")
             end
         
             append!(df_esef_error, df_)
