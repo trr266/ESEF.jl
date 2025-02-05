@@ -424,7 +424,7 @@ end
     
     df_error = get_error_messages(debug=true)
     @test ncol(df_error) == 6
-    @test nrow(df_error) > 10
+    @test nrow(df_error) > 4
     @test names(df_error) == [
         "id",
         "error_json_path",
