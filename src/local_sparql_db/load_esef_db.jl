@@ -28,7 +28,7 @@ function unpack_raw_concept_result(df)
             :period = rehydrate_uri_entity(:period),
             :unit = rehydrate_uri_entity(:unit),
             :decimals = parse(Int, rehydrate_uri_entity(:decimals)),
-            :value = parse(Int, rehydrate_uri_entity(:value)),
+            :value = parse(Float64, rehydrate_uri_entity(:value)),
         )
     end
     return df
