@@ -64,21 +64,8 @@ function export_equity_table(oxigraph_port)
     return df_profit
 end
 
-function build_xbrl_dataframe(; debug=false)
-    df_xbrl_raw = get_esef_xbrl_filings(debug=debug)
-
-    if debug
-        df_xbrl_raw = first(df_xbrl_raw, 5)
-    end
-
-
-    df_xbrl_raw = @chain df_xbrl_raw begin
-        @subset(:xbrl_json_path != nothing)
-        @transform(:xbrl_json_path = replace(:xbrl_json_path, " " => "%20"))
-    end
-
+function build_df_esef_rdf(df_xbrl_raw)
     df_esef_rdf = DataFrame()
-
     for r in eachrow(df_xbrl_raw)
         xbrl_json_path = r[:xbrl_json_path]
         df_ = get_xbrl_json_doc(xbrl_json_path)
@@ -96,7 +83,45 @@ function build_xbrl_dataframe(; debug=false)
             )
         end
         append!(df_esef_rdf, df_rdf)
-        sleep(0.5)
+    end
+    return df_esef_rdf
+end
+
+function build_xbrl_dataframe(; debug=false)
+    df_xbrl_raw = get_esef_xbrl_filings(debug=debug)
+
+    if debug
+        df_xbrl_raw = first(df_xbrl_raw, 5)
+    end
+
+    df_xbrl_raw = @chain df_xbrl_raw begin
+        @subset(:xbrl_json_path != nothing)
+        @transform(:xbrl_json_path = replace(:xbrl_json_path, " " => "%20"))
+    end
+
+    df_esef_rdf = DataFrame()
+
+    for wdata_country_id in unique(df_xbrl_raw[!, :country])
+        country_name = @chain ESEF.get_wikidata_country_iso2_lookup() @subset(:country == wdata_country_id) @select(:countryLabel) _[1, 1]
+
+        arrow_file = joinpath(".cache", "df_esef_rdf_$(country_name)$(debug ? "_debug" : "").arrow")
+        
+        if isfile(arrow_file)
+            @info "Reading filings for $country_name from cache."
+            df_country = @chain arrow_file begin
+                Arrow.Table()
+                DataFrame()
+            end
+        else
+            @info "Fetching filings for $country_name."
+            df_country = @chain df_xbrl_raw begin
+                @subset(:country .== wdata_country_id)
+                build_df_esef_rdf(_)
+            end
+            Arrow.write(arrow_file, df_country)
+        end
+        
+        df_esef_rdf = vcat(df_esef_rdf, df_country)
     end
 
     return df_esef_rdf
@@ -130,7 +155,7 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false)
     end
 
     debug_flag = debug ? "_debug" : ""
-    f_esef_arrow = ".cache/df_esef_rdf$debug_flag.arrow"
+    f_esef_arrow = ".cache/df_esef_rdf_full_$debug_flag.arrow"
     if !isfile(f_esef_arrow)
         df_esef_rdf = @chain build_xbrl_dataframe(debug=debug) begin
             @aside Arrow.write(f_esef_arrow, _)

@@ -42,6 +42,8 @@ using Memoization
         end
     end
 
+    sleep(0.4)
+
     return finished_facts
 end
 
