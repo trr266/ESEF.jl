@@ -167,7 +167,7 @@ This function orchestrates the process of loading ESEF data and preparing it wit
 # Returns
 - The function may return a process object with the database server and the port number for the server.
 """
-function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false, skip_download=false)
+function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false, skip_download=true)
     if !isdir(".cache")
         mkdir(".cache")
     end
