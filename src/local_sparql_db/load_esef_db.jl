@@ -200,16 +200,19 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false, skip_d
         mkdir(".cache/nt_files")
     end
 
+    nt_file_path = ""
+
     for arrow_file in filter(f -> endswith(f, ".arrow"), readdir(".cache/esef_rdf$(debug ? "_debug" : "")", join=true))
         df_tmp = unique(DataFrame(Arrow.Table(arrow_file)))
         nt_file_path_ = joinpath(".cache/nt_files/", splitext(basename(arrow_file))[1]) * ".nt"
         open(nt_file_path_, "w") do io
             writedlm(io, df_tmp[:, :rdf_line])
         end
+        nt_file_path *= " " * nt_file_path_
     end
 
     nt_file_path_ = ".cache/nt_files/oxigraph_rdf_wikidata$(debug ? "_debug" : "").nt"
-
+    nt_file_path *= " " * nt_file_path_
     open(nt_file_path_, "w") do io
         writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
     end
