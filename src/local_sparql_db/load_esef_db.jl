@@ -209,8 +209,9 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false, skip_d
     end
 
     nt_file_path_ = ".cache/nt_files/oxigraph_rdf_wikidata$(debug ? "_debug" : "").nt"
+
     open(nt_file_path_, "w") do io
-        writedlm(io, df_wikidata_rdf[:, :rdf_lin;e]; quotes=false)
+        writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
     end
 
     oxigraph_process, oxigraph_port = serve_oxigraph(;
