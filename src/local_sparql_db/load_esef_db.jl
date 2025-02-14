@@ -165,11 +165,7 @@ Loads and serves ESEF data into a local SPARQL database, with options to manage 
 This function orchestrates the process of loading ESEF data and preparing it within a local SPARQL database setup. It is designed to be flexible, offering control over database state, connection persistence, and troubleshooting options via its keyword arguments.
 
 # Returns
-The behavior on return is context-specific:
-- The function may return an updated database handle, or
-- It may simply perform side effects such as updating the state of the local database.
-
-Ensure that any necessary preconditions, such as environment configuration and dependency installation, are satisfied before calling this function.
+- The function may return a process object with the database server and the port number for the server.
 """
 function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false, skip_download=false)
     if !isdir(".cache")
