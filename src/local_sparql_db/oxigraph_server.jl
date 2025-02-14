@@ -46,7 +46,10 @@ function serve_oxigraph(;
     end
 
     # 5. Check that we got the right number of items
-    @assert n_items == countlines(nt_file_path) "Basic integrity check failed, check whether dataset has duplicates!"
+    total_lines = sum(
+        countlines(file) for file in readdir(".cache/nt_files", join=true) if isfile(file)
+    )
+    @assert n_items == total_lines "Basic integrity check failed, check whether dataset has duplicates!"
 
     # 6. Stop database
     if keep_open
