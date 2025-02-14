@@ -189,19 +189,28 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false, skip_d
         end
     end
 
-    nt_file_path = ".cache/oxigraph_rdf$(debug ? "_debug" : "").nt"
+    
 
     rm(nt_file_path; force=true)
 
     # TODO: Figure out why predicate and object are reversed for wikidata, making queries fail
     # TODO: Import statements for Wikidata (e.g. LEIs)
 
-    open(nt_file_path, "w") do io
-        for arrow_file in filter(f -> endswith(f, ".arrow"), readdir(".cache/esef_rdf$(debug ? "_debug" : "")", join=true))
-            df_tmp = DataFrame(Arrow.Table(arrow_file))
+    if !isdir(".cache/nt_files")
+        mkdir(".cache/nt_files")
+    end
+
+    for arrow_file in filter(f -> endswith(f, ".arrow"), readdir(".cache/esef_rdf$(debug ? "_debug" : "")", join=true))
+        df_tmp = unique(DataFrame(Arrow.Table(arrow_file)))
+        nt_file_path_ = joinpath(".cache/nt_files/", splitext(basename(arrow_file))[1]
+        open(nt_file_path_, "w") do io
             writedlm(io, df_tmp[:, :rdf_line])
         end
-        writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
+    end
+
+    nt_file_path_ = ".cache/nt_files/oxigraph_rdf_wikidata$(debug ? "_debug" : "").nt"
+    open(nt_file_path_, "w") do io
+        writedlm(io, df_wikidata_rdf[:, :rdf_lin;e]; quotes=false)
     end
 
     oxigraph_process, oxigraph_port = serve_oxigraph(;

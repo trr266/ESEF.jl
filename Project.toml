@@ -59,7 +59,7 @@ Retry = "0.4"
 Setfield = "1"
 URIParser = "0.4"
 YAML = "0.4"
-oxigraph_server_jll = "0.4"
+oxigraph_server_jll = "0.4.7"
 
 [extras]
 Chain = "8be319e6-bccf-4806-a6f7-6fae938471bc"
