@@ -87,7 +87,7 @@ function build_df_esef_rdf(df_xbrl_raw)
     return df_esef_rdf
 end
 
-function build_xbrl_dataframe(; debug=false)
+function download_xbrl_data(; debug=false)
     df_xbrl_raw = get_esef_xbrl_filings(debug=debug)
 
     if debug
@@ -99,30 +99,29 @@ function build_xbrl_dataframe(; debug=false)
         @transform(:xbrl_json_path = replace(:xbrl_json_path, " " => "%20"))
     end
 
-    df_esef_rdf = DataFrame()
+    esef_rdf_folder = ".cache/esef_rdf$(debug ? "_debug" : "")"
+    if !isdir(esef_rdf_folder)
+        mkdir(esef_rdf_folder)
+    end
 
-    for country_name in unique(df_xbrl_raw[!, :countryLabel])
-        arrow_file = joinpath(".cache", "df_esef_rdf_$(country_name)$(debug ? "_debug" : "").arrow")
+    for country_alpha_2 in unique(df_xbrl_raw[!, :country_alpha_2])
+        arrow_file = joinpath(esef_rdf_folder, "df_esef_rdf_$(country_alpha_2)$(debug ? "_debug" : "").arrow")
         
         if isfile(arrow_file)
-            @info "Reading filings for $country_name from cache."
+            @info "Reading filings for $country_alpha_2 from cache."
             df_country = @chain arrow_file begin
                 Arrow.Table()
                 DataFrame()
             end
         else
-            @info "Fetching filings for $country_name."
+            @info "Fetching filings for $country_alpha_2."
             df_country = @chain df_xbrl_raw begin
-                @subset(:countryLabel .== country_name)
+                @subset(:countryLabel .== country_alpha_2)
                 build_df_esef_rdf(_)
             end
             Arrow.write(arrow_file, df_country)
         end
-        
-        df_esef_rdf = vcat(df_esef_rdf, df_country)
     end
-
-    return df_esef_rdf
 end
 
 function format_nt(s_p_o_string)
@@ -133,7 +132,7 @@ function format_nt(s_p_o_string)
     end
 end
 
-function build_wikidata_dataframe()
+function build_wikidata_dataframe(; debug=false)
     df_wikidata_rdf = get_accounting_facts()
 
     return df_wikidata_rdf = @chain df_wikidata_rdf begin
@@ -152,22 +151,11 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false)
         mkdir(".cache")
     end
 
-    debug_flag = debug ? "_debug" : ""
-    f_esef_arrow = ".cache/df_esef_rdf_full_$debug_flag.arrow"
-    if !isfile(f_esef_arrow)
-        df_esef_rdf = @chain build_xbrl_dataframe(debug=debug) begin
-            @aside Arrow.write(f_esef_arrow, _)
-        end
-    else
-        df_esef_rdf = @chain f_esef_arrow begin
-            Arrow.Table()
-            DataFrame()
-        end
-    end
+    download_xbrl_data(debug=debug)
 
-    f_wikidata = ".cache/df_wikidata_rdf$debug_flag.arrow"
+    f_wikidata = ".cache/df_wikidata_rdf$(debug ? "_debug" : "").arrow"
     if !isfile(f_wikidata)
-        df_wikidata_rdf = @chain build_wikidata_dataframe() begin
+        df_wikidata_rdf = @chain build_wikidata_dataframe(; debug=debug) begin
             @aside Arrow.write(f_wikidata, _)
         end
 
@@ -178,7 +166,7 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false)
         end
     end
 
-    nt_file_path = ".cache/oxigraph_rdf$debug_flag.nt"
+    nt_file_path = ".cache/oxigraph_rdf$(debug ? "_debug" : "").nt"
 
     rm(nt_file_path; force=true)
 
@@ -186,8 +174,11 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false)
     # TODO: Import statements for Wikidata (e.g. LEIs)
 
     open(nt_file_path, "w") do io
-        writedlm(io, df_esef_rdf[:, :rdf_line])
-        writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
+        for arrow_file in filter(f -> endswith(f, ".arrow"), readdir(".cache/esef_rdf$(debug ? "_debug" : "")", join=true))
+            df_tmp = DataFrame(Arrow.Table(arrow_file))
+            writedlm(io, df_tmp[:, :rdf_line])
+        end
+        # writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
     end
 
     oxigraph_process, oxigraph_port = serve_oxigraph(;
