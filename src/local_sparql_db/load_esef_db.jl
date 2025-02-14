@@ -146,12 +146,39 @@ function build_wikidata_dataframe(; debug=false)
     end
 end
 
-function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false)
+"""
+    serve_esef_data(; keep_open::Bool=false, rebuild_db::Bool=true, debug::Bool=false, skip_download::Bool=false)
+
+Loads and serves ESEF data into a local SPARQL database, with options to manage connection persistence, database rebuilding, debugging, and data downloading behavior.
+
+# Keyword Arguments
+- `keep_open::Bool`: 
+    If `true`, maintains an open connection after processing, which can be useful for further database operations.
+- `rebuild_db::Bool`: 
+    If `true`, forces a rebuild of the local database prior to loading the new ESEF data. Set to `false` to preserve the current database structure.
+- `debug::Bool`: 
+    If `true`, enables debug mode and uses abridged test data.
+- `skip_download::Bool`: 
+    If `true`, bypasses the download step for the ESEF data, using the locally cached version instead.
+
+# Details
+This function orchestrates the process of loading ESEF data and preparing it within a local SPARQL database setup. It is designed to be flexible, offering control over database state, connection persistence, and troubleshooting options via its keyword arguments.
+
+# Returns
+The behavior on return is context-specific:
+- The function may return an updated database handle, or
+- It may simply perform side effects such as updating the state of the local database.
+
+Ensure that any necessary preconditions, such as environment configuration and dependency installation, are satisfied before calling this function.
+"""
+function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false, skip_download=false)
     if !isdir(".cache")
         mkdir(".cache")
     end
 
-    download_xbrl_data(debug=debug)
+    if !skip_download
+        download_xbrl_data(debug=debug)
+    end
 
     f_wikidata = ".cache/df_wikidata_rdf$(debug ? "_debug" : "").arrow"
     if !isfile(f_wikidata)
