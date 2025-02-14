@@ -101,9 +101,7 @@ function build_xbrl_dataframe(; debug=false)
 
     df_esef_rdf = DataFrame()
 
-    for wdata_country_id in unique(df_xbrl_raw[!, :country])
-        country_name = @chain ESEF.get_wikidata_country_iso2_lookup() @subset(:country == wdata_country_id) @select(:countryLabel) _[1, 1]
-
+    for country_name in unique(df_xbrl_raw[!, :countryLabel])
         arrow_file = joinpath(".cache", "df_esef_rdf_$(country_name)$(debug ? "_debug" : "").arrow")
         
         if isfile(arrow_file)
@@ -115,7 +113,7 @@ function build_xbrl_dataframe(; debug=false)
         else
             @info "Fetching filings for $country_name."
             df_country = @chain df_xbrl_raw begin
-                @subset(:country .== wdata_country_id)
+                @subset(:countryLabel .== country_name)
                 build_df_esef_rdf(_)
             end
             Arrow.write(arrow_file, df_country)
