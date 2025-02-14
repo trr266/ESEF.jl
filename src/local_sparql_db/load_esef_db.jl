@@ -116,7 +116,7 @@ function download_xbrl_data(; debug=false)
         else
             @info "Fetching filings for $country_alpha_2."
             df_country = @chain df_xbrl_raw begin
-                @subset(:countryLabel .== country_alpha_2)
+                @subset(:country_alpha_2 .== country_alpha_2)
                 build_df_esef_rdf(_)
             end
             Arrow.write(arrow_file, df_country)
@@ -178,11 +178,11 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false)
             df_tmp = DataFrame(Arrow.Table(arrow_file))
             writedlm(io, df_tmp[:, :rdf_line])
         end
-        # writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
+        writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
     end
 
     oxigraph_process, oxigraph_port = serve_oxigraph(;
-        nt_file_path=nt_file_path, rebuild_db=true, keep_open=keep_open
+        nt_file_path=nt_file_path, rebuild_db=rebuild_db, keep_open=keep_open
     )
 
     return oxigraph_process, oxigraph_port
