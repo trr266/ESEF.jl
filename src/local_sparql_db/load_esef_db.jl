@@ -189,10 +189,6 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false, skip_d
         end
     end
 
-    
-
-    rm(nt_file_path; force=true)
-
     # TODO: Figure out why predicate and object are reversed for wikidata, making queries fail
     # TODO: Import statements for Wikidata (e.g. LEIs)
 
