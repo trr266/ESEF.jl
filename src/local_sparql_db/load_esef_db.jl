@@ -202,7 +202,7 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false, skip_d
 
     for arrow_file in filter(f -> endswith(f, ".arrow"), readdir(".cache/esef_rdf$(debug ? "_debug" : "")", join=true))
         df_tmp = unique(DataFrame(Arrow.Table(arrow_file)))
-        nt_file_path_ = joinpath(".cache/nt_files/", splitext(basename(arrow_file))[1]
+        nt_file_path_ = joinpath(".cache/nt_files/", splitext(basename(arrow_file))[1]) * ".nt"
         open(nt_file_path_, "w") do io
             writedlm(io, df_tmp[:, :rdf_line])
         end
