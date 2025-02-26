@@ -34,6 +34,7 @@ function serve_oxigraph(;
         `$(oxigraph_server()) serve --location $db_path --bind localhost:$oxigraph_port`;
         wait=false,
     )
+    @info "Oxigraph server running at localhost:$oxigraph_port"
     sleep(2)
 
     # 4. Test query database
