@@ -172,45 +172,52 @@ function serve_esef_data(; keep_open=false, rebuild_db=true, debug=false, skip_d
         mkdir(".cache")
     end
 
-    if !skip_download
-        download_xbrl_data(debug=debug)
-    end
-
-    f_wikidata = ".cache/df_wikidata_rdf$(debug ? "_debug" : "").arrow"
-    if !isfile(f_wikidata)
-        df_wikidata_rdf = @chain build_wikidata_dataframe(; debug=debug) begin
-            @aside Arrow.write(f_wikidata, _)
+    if rebuild_db
+        @info "Rebuilding database."
+        if !skip_download
+            @info "Downloading ESEF data."
+            download_xbrl_data(debug=debug)
         end
 
-    else
-        df_wikidata_rdf = @chain f_wikidata begin
-            Arrow.Table()
-            DataFrame()
+        f_wikidata = ".cache/df_wikidata_rdf$(debug ? "_debug" : "").arrow"
+        if !isfile(f_wikidata)
+            @info "Fetching Wikidata RDF."
+            df_wikidata_rdf = @chain build_wikidata_dataframe(; debug=debug) begin
+                @aside Arrow.write(f_wikidata, _)
+            end
+
+        else
+            @info "Reading Wikidata RDF from cache."
+            df_wikidata_rdf = @chain f_wikidata begin
+                Arrow.Table()
+                DataFrame()
+            end
         end
-    end
 
-    # TODO: Figure out why predicate and object are reversed for wikidata, making queries fail
-    # TODO: Import statements for Wikidata (e.g. LEIs)
+        # TODO: Figure out why predicate and object are reversed for wikidata, making queries fail
+        # TODO: Import statements for Wikidata (e.g. LEIs)
 
-    if !isdir(".cache/nt_files")
-        mkdir(".cache/nt_files")
-    end
-
-    nt_file_path = ""
-
-    for arrow_file in filter(f -> endswith(f, ".arrow"), readdir(".cache/esef_rdf$(debug ? "_debug" : "")", join=true))
-        df_tmp = unique(DataFrame(Arrow.Table(arrow_file)))
-        nt_file_path_ = joinpath(".cache/nt_files/", splitext(basename(arrow_file))[1]) * ".nt"
-        open(nt_file_path_, "w") do io
-            writedlm(io, df_tmp[:, :rdf_line])
+        if !isdir(".cache/nt_files")
+            mkdir(".cache/nt_files")
         end
+
+        nt_file_path = ""
+
+        @info "Building NT files."
+        for arrow_file in filter(f -> endswith(f, ".arrow"), readdir(".cache/esef_rdf$(debug ? "_debug" : "")", join=true))
+            df_tmp = unique(DataFrame(Arrow.Table(arrow_file)))
+            nt_file_path_ = joinpath(".cache/nt_files/", splitext(basename(arrow_file))[1]) * ".nt"
+            open(nt_file_path_, "w") do io
+                writedlm(io, df_tmp[:, :rdf_line])
+            end
+            nt_file_path *= " " * nt_file_path_
+        end
+
+        nt_file_path_ = ".cache/nt_files/oxigraph_rdf_wikidata$(debug ? "_debug" : "").nt"
         nt_file_path *= " " * nt_file_path_
-    end
-
-    nt_file_path_ = ".cache/nt_files/oxigraph_rdf_wikidata$(debug ? "_debug" : "").nt"
-    nt_file_path *= " " * nt_file_path_
-    open(nt_file_path_, "w") do io
-        writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
+        open(nt_file_path_, "w") do io
+            writedlm(io, df_wikidata_rdf[:, :rdf_line]; quotes=false)
+        end
     end
 
     oxigraph_process, oxigraph_port = serve_oxigraph(;
