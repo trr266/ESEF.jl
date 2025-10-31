@@ -38,7 +38,7 @@
           # Checkout the code base #
           ##########################
           - name: Checkout Code
-            uses: actions/checkout@v2
+            uses: actions/checkout@v4
             with:
               fetch-depth: 0
     
@@ -46,7 +46,7 @@
           # Run Linter against code base #
           ################################
           - name: Lint Code Base
-            uses: github/super-linter@v4
+            uses: github/super-linter@v7
             env:
               VALIDATE_ALL_CODEBASE: true
               DEFAULT_BRANCH: main
