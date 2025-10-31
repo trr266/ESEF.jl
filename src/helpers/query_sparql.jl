@@ -24,7 +24,7 @@ function query_sparql(api_url, sparql_query_file; params=Dict())
 
         # Reshape as dataframe
         [DataFrame(r) for r in _["results"]["bindings"]]
-        vcat(_...; cols=:union)
+        isempty(_) ? DataFrame() : vcat(_...; cols=:union)
     end
 
     return df
