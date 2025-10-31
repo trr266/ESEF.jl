@@ -23,8 +23,8 @@ function query_sparql(api_url, sparql_query_file; params=Dict())
         patient_post(api_url, headers, _)
 
         # Reshape as dataframe
-        [DataFrame(r) for r in _["results"]["bindings"]]
-        isempty(_) ? DataFrame() : vcat(_...; cols=:union)
+        dfs = [DataFrame(r) for r in _["results"]["bindings"]]
+        isempty(dfs) ? DataFrame() : vcat(dfs...;  cols=:union)
     end
 
     return df
