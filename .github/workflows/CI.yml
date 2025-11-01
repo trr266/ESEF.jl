@@ -9,10 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/trr266/esef-jl:main
     steps:
-      - 
-        name: Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - 
-        name: test Package
+      - name: test Package
         run: |
           julia --project=. -e "using Pkg; Pkg.test()"
