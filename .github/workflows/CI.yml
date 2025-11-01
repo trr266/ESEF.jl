@@ -6,6 +6,7 @@ on:
     branches: [main]
 permissions:
   contents: read
+  packages: read
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -13,6 +14,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Cache Julia packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.julia/packages
+            ~/.julia/artifacts
+            ~/.julia/compiled
+          key: ${{ runner.os }}-julia-${{ hashFiles('**/Project.toml', '**/Manifest.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-julia-
       - name: test Package
         run: |
           julia --project=. -e "using Pkg; Pkg.test()"
