@@ -20,6 +20,10 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  statuses: write
+
 ###############
 # Set the Job #
 ###############
