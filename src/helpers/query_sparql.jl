@@ -35,7 +35,8 @@ function query_sparql(api_url, sparql_query_file; params=Dict())
     else
         # Convert each binding to a DataFrame and combine
         dfs = [DataFrame(r) for r in bindings]
-        df = length(dfs) == 1 ? dfs[1] : vcat(dfs...; cols=:union)
+        # Always use vcat for consistency, even with single DataFrame
+        df = vcat(dfs...; cols=:union)
     end
 
     return df
