@@ -4,15 +4,30 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  pull_request_target:
+    branches: [main]
+permissions:
+  contents: read
+  packages: read
 jobs:
   docker:
     runs-on: ubuntu-latest
     container: ghcr.io/trr266/esef-jl:main
     steps:
-      - 
-        name: Checkout repository
-        uses: actions/checkout@v3
-      - 
-        name: test Package
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Cache Julia packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.julia/packages
+            ~/.julia/artifacts
+            ~/.julia/compiled
+          key: ${{ runner.os }}-julia-${{ hashFiles('**/Project.toml', '**/Manifest.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-julia-
+      - name: test Package
         run: |
           julia --project=. -e "using Pkg; Pkg.test()"

@@ -26,12 +26,12 @@ function serve_oxigraph(;
     end
 
     # 2. Load data into database
-    run(`$(oxigraph_server()) --location $db_path load --file $nt_file_path`)
+    run(`$(oxigraph_server()) load --location $db_path --file $nt_file_path`)
 
     # 3. Spin up database
     oxigraph_port = rand(7001:7999, 1)[1]
     oxigraph_process = run(
-        `$(oxigraph_server()) --location $db_path serve --bind localhost:$oxigraph_port`;
+        `$(oxigraph_server()) serve --location $db_path --bind localhost:$oxigraph_port`;
         wait=false,
     )
     sleep(2)
